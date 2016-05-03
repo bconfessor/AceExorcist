@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 8b8bed58192f61a40abb9ac50260e078
+timeCreated: 1462240754
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - CardGO: {fileID: 182266, guid: d68d55eb63681464196a02b6c7e0a197, type: 2}
+  - deckScript: {instanceID: 0}
+  executionOrder: 100
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

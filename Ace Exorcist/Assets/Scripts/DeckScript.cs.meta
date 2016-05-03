@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5023450adbc2ae541b97f6f77b33eb96
+timeCreated: 1462046282
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - playerH: {instanceID: 0}
+  - enemyH: {instanceID: 0}
+  - CardGO: {fileID: 182266, guid: d68d55eb63681464196a02b6c7e0a197, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
