@@ -16,14 +16,36 @@ public class  DeckScript : MonoBehaviour {
 
 
 	public bool playerDeck;
-	
+
+	public void startDeckAndDrawCards()
+	{
+
+		deck = new Deck(playerDeck);//depends on whose deck it is
+
+		//shuffles deck
+		deck.shuffleDeck();
+
+		//empty hands just to be sure, in case this is being called by Reset
+		playerHand.emptyHand();
+
+		//draw 5 cards for each one
+		for (int i = 0; i < 5; i++)
+		{
+			//here, we must grab 5 cards and put them inside the hand. For that, we must first instantiate 5 card GO's and then order them
+			GameObject card = Instantiate(CardGO);
+			card.GetComponent<CardModel> ().loadCard (deck.TakeCard ());//pulled a card from deck
+			//now we add the pulled card to the hand
+			playerHand.addCard(card ,playerDeck);//and this runs the display always, so it'll update the card
+		}
+
+		playerHand.displayCards ();
+
+	}
+
+
+
 	// Use this for initialization
 	void Start () {
-		//for now, has the same amount as a normal deck?
-		//cardAmount = 30;
-		//cardsRemaining=cardAmount;
-		//maxHandValue = 6;       //this is also specified in AceExorcistGames.cs???
-		//deck = new Deck(); - moved this into AceExorcistGames.cs
 
 		//create references to the player's Hand component and the enemy's, depending on who's this script parent
 		if (playerDeck) {
@@ -34,30 +56,11 @@ public class  DeckScript : MonoBehaviour {
 			playerHand = GameObject.Find ("SummonerHand").GetComponent<Hand> ();
 		}
 
-		deck = new Deck(playerDeck);//depends on whose deck it is
 
-		//shuffles deck
-		deck.shuffleDeck();
 
-		//draw 5 cards for each one
-		for (int i = 0; i < 5; i++)
-		{
-			//here, we must grab 5 cards and put them inside the hand. For that, we must first instantiate 5 card GO's and then order them
-			GameObject card = Instantiate(CardGO);
-			card.GetComponent<CardModel> ().loadCard (deck.TakeCard ());//pulled a card from deck
-			//now we add the pulled card to the hand
-			playerHand.addCard( card ,playerDeck);//and this runs the display always, so it'll update the card
-		}
+		//maybe I overdid it with this method name...?
+		startDeckAndDrawCards ();
 
-		playerHand.displayCards ();
-
-		//Shows each card for that deck
-		/*
-		Debug.Log("Cards on this deck");
-		for(int i =0;i< deck.Cards.Count;i++)
-		{
-			Debug.Log(deck.Cards[i].cardValue + " of "+ deck.Cards[i].Suit);
-		}*/
 		
 	}
 	
@@ -65,7 +68,7 @@ public class  DeckScript : MonoBehaviour {
 	void Update () {
 		if(Input.GetKeyDown(KeyCode.E)&&!playerDeck)//will make the enemy draw a card and show its hand
 		{
-			if(playerHand.currentCardNumber<AceExorcistGame.instance.MaxHandSize)//max number of cards you can have in your hand
+			if(playerHand.currentCardNumber<AceExorcistGame.instance.maxHandSize)//max number of cards you can have in your hand
 			{
 				Card cardDrawn = deck.TakeCard();
 				//creates the card in the game world with the Card prefab
@@ -98,7 +101,7 @@ public class  DeckScript : MonoBehaviour {
 		}
 		else if(Input.GetKeyDown(KeyCode.P)&&playerDeck)//will make the player draw a card and show it's current hand
 		{
-			if(playerHand.currentCardNumber<AceExorcistGame.instance.MaxHandSize)//max 
+			if(playerHand.currentCardNumber<AceExorcistGame.instance.maxHandSize)//max 
 			{
 				Card cardDrawn = deck.TakeCard();
 				Debug.Log("Player drew a "+cardDrawn.cardValue + " of " + cardDrawn.Suit);
@@ -109,13 +112,7 @@ public class  DeckScript : MonoBehaviour {
 				//once card is created, fill it up with the info on the card drawn
 				card.GetComponent<CardModel> ().loadCard (cardDrawn);
 
-				//card.GetComponent<CardModel>().cardValue = cardDrawn.cardValue;
-				//card.GetComponent<CardModel>().cardSuit = cardDrawn.Suit;
-
-				//Sprite cardSprite = Resources.Load<Sprite>("Sprites/aceSpades");
-				
-				//card.GetComponent<SpriteRenderer>().sprite = cardSprite;
-
+				//then add it too hand
 				playerHand.addCard(card,playerDeck);
 
 				card.transform.parent = GameObject.Find("ExorcistHand").transform;//make this card a child of the exorcist hand

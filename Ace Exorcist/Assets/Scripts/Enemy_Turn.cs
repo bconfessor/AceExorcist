@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using Cards.Collections;
 using System.Collections.Generic;
@@ -6,35 +7,32 @@ using System.Collections.Generic;
 public class Enemy_Turn : MonoBehaviour {
 	
 	
-	List<GameObject> cardsChosen;//cards chosen by the player; get them through the clicking script
+	//List<GameObject> cardsChosen;//cards chosen by the player; get them through the clicking script
 	public Hand hand;//stores the player hand to be used
 
 	void OnEnable()
 	{
 		Debug.Log ("It's the Summoner's turn");
 		Debug.Log("Select the cards you want to use.");
-		Debug.Log("Once they're chosen, press A to attack the exorcist's health, D to draw, S to summon or P to Pass");
-	}
+		//Debug.Log("Once they're chosen, press A to attack the exorcist's health, D to draw, S to summon or P to Pass");
 
+	}
+	void OnDisable()
+	{
+		endTurn ();
+	}
 
 	// Use this for initialization
 	void Start () {
-		cardsChosen = new List<GameObject>();
-		hand = GameObject.Find("SummonerHand").GetComponent<Hand>();
-
-
-	}
-
-	void OnEnabled()
-	{
-		Debug.Log ("Summoner turn enabled.");
+		//cardsChosen = new List<GameObject>();
+		ButtonManager.instance.turnStarted ();
+		hand = AceExorcistGame.instance.summonerHand;
 	}
 	
 	void endTurn()//ends the player turn; modifies the exorcistTurn boolean and destroys this component
 	{
 		AceExorcistGame.instance.isExorcistTurn=true;
-		//TODO:Don't destroy, disable
-		//Destroy(this);//removes component
+
 	}
 	
 	// Update is called once per frame

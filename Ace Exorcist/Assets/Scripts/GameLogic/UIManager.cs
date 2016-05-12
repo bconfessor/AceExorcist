@@ -20,8 +20,8 @@ public class UIManager : MonoBehaviour {
 	public void updateHealthUI()
 	{
 		//updates both HP's
-		exorcistHP.text = "Exorcist HP: " + AceExorcistGame.instance.ExorcistHP;
-		summonerHP.text = "Summoner HP: " + AceExorcistGame.instance.SummonerHP;
+		exorcistHP.text = "Exorcist HP: " + AceExorcistGame.instance.currentExorcistHP;
+		summonerHP.text = "Summoner HP: " + AceExorcistGame.instance.currentSummonerHP;
 
 	}
 

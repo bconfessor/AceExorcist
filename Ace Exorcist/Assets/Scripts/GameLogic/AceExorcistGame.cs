@@ -1,31 +1,39 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections.Generic;
 using Cards.Collections;
 
 public class AceExorcistGame : MonoBehaviour
 {
+	//Script holds the main mechanics and rules of the game
+
 
 
 	public static AceExorcistGame instance;
 
-    public Deck ExorcistLibrary;
-    public Deck SummonerLibrary;
+    public Deck exorcistLibrary;//Don't really need these decks here, they're in their own scripts
+    public Deck summonerLibrary;
+
     //public Discard ExorcistDiscard;
     //public Discard SummonerDiscard;
-    public Card SummonerLibraryCard;
-    public GameObject ExorcistHandGO, SummonerHandGO;
-    public Hand SummonerHand, ExorcistHand;
-	public Hand SummonZone;
+    public Card summonerLibraryCard;
+    public GameObject exorcistHandGO, summonerHandGO, exorcistDeckGO, summonerDeckGO, summonZoneGO;
+	public GameObject cardGO;//Holds the card prefab to be created, to be place via inspector 
 
-    public List<Card> CardsPlayed; //is this needed?
+    public Hand summonerHand, exorcistHand;
+	public Hand summonZone;
 
-	public GameObject CardGO;//Holds the card prefab to be created, to be place via inspector 
+    public List<Card> cardsPlayed; //is this needed?
+
+
 
 	//general values to be used throughout game
-    public int ExorcistHP = 30;
-    public int SummonerHP = 60;
-    public int MaxHandSize = 6;
+    public int exorcistHP = 30;
+    public int summonerHP = 60;
+	public int currentExorcistHP, currentSummonerHP;
+    public int maxHandSize = 6;
 
 	//flags to control game flow
     public bool isExorcistTurn = false;//holds whether it's the exorcist's turn or the summoner's
@@ -37,18 +45,16 @@ public class AceExorcistGame : MonoBehaviour
 	void Awake()
 	{
 		instance = this;
-
+		currentExorcistHP = exorcistHP;
+		currentSummonerHP = summonerHP;
 
 		//Create Deck and Hand for Exorcist, and draw 5 cards from Deck to Hand
-		ExorcistLibrary = new Deck(isExorcist);
-		ExorcistHand = ExorcistHandGO.GetComponent<Hand>();
-		SummonerLibrary = new Deck(!isExorcist);
-		SummonerHand = SummonerHandGO.GetComponent<Hand>();
+		exorcistLibrary = new Deck(isExorcist);
+		exorcistHand = exorcistHandGO.GetComponent<Hand>();
+		summonerLibrary = new Deck(!isExorcist);
+		summonerHand = summonerHandGO.GetComponent<Hand>();
 
-
-
-		//Create Summon Zone
-		//SummonZone = new Hand();
+		summonZone = summonZoneGO.GetComponent<Hand> ();
 
 		//Create Discards (as a Hand - but not in this implementation)
 
@@ -56,44 +62,53 @@ public class AceExorcistGame : MonoBehaviour
 
 	void Start()
 	{
-		//ExorcistHand.currentCardNumber = 0;
-		//SummonerHand.currentCardNumber = 0;
-		/*
-		//draw 5 cards for each one
-		for (int i = 0; i < 5; i++)
-		{
-			//here, we must grab 5 cards and put them inside the hand. For that, we must first instantiate 5 card GO's and then order them
-			GameObject card = Instantiate(CardGO,new Vector3(-3,-2), Quaternion.identity) as GameObject;
-			card.GetComponent<CardModel> ().loadCard (ExorcistLibrary.TakeCard ());//pulled a card from deck
-			//now we add the pulled card to the hand
-			ExorcistHand.addCard( card ,true);//and this runs the display always, so it'll update the card
-		}
 
-
-		//Create Deck and Hand for Exorcist, and draw 5 cards from Deck to Hand
-		isExorcist = false;
-
-
-		for (int i = 0; i < 5; i++)
-		{
-			//same thing, create card GO, add new Card to it, add it to summoner hand
-			GameObject card = Instantiate(CardGO, new Vector3(3,2), Quaternion.identity) as GameObject;
-			card.GetComponent<CardModel> ().loadCard (SummonerLibrary.TakeCard ());
-			SummonerHand.addCard(card,false);
-		}
-
-		//once the card is added to the hand, the display must be updated
-		ExorcistHand.displayCards();
-		SummonerHand.displayCards ();*/
 
 	}
+
+
+	public void ResetGame()
+	{
+		//resets flags and values so game can restart
+		currentExorcistHP = exorcistHP;
+		currentSummonerHP = summonerHP;
+		exorcistAlive = true;
+		summonerAlive = true;
+
+
+		//how to properly reset hand...?(like this I guess)
+		//TODO
+
+	}
+
+
+	public bool ExorcistIsAlive()
+	{
+		//returns true if exorcist is alive
+		if (currentExorcistHP <= 0)
+		{
+			exorcistAlive = false;
+		}
+		return exorcistAlive;
+	}
+
+	public bool SummonerIsAlive()
+	{
+		//returns true if summoner is alive
+		if (currentSummonerHP <= 0)
+		{
+			summonerAlive = false;
+		}
+		return summonerAlive;
+	}
+
 
 	/*
 	 
 	  Ok, so here's the deal: I'll have to pretty much redo ALL of their code(which will pretty much make it all MY code, so...
 	  I'll credit Jordan/Mikail for the card idea and Dani/Zoe for the art), so for now I'll comment it all out and fix it
 	  little by little. Once I get the cards working properly, I'll focus on fixing those game rules (which FYI, should have
-	  been WAAAAAY more commented than they are, idk what half of those methods do just by looking at them).
+	  been WAAAAAY more commented than they are, idk what half of those methods do just by looking at them).*/
 
 
     public Hand GetCardsInHand() //is this handled in Hand?
@@ -101,166 +116,314 @@ public class AceExorcistGame : MonoBehaviour
         //Check if player is Exorcist
         if (isExorcistTurn)
         {
-            return ExorcistHand;
+            return exorcistHand;
         }
         else
         {
-            return SummonerHand;
+            return summonerHand;
         }
     }
 
-    public void toggleCard(int index, ref List<Card> CardsPlayed)
-    { Hand theHand=null;
 
-        if (isExorcistTurn) theHand = ExorcistHand;
-        else theHand = SummonerHand;
+	public void currentTurnEnded()
+	{
+		//can be used for both players, since MainGameLoop controls flow
+		//invert the enabled scripts(that will change the boolean accordingly)
+		exorcistDeckGO.GetComponent<Player_Turn> ().enabled = !exorcistDeckGO.GetComponent<Player_Turn> ().enabled;
+		summonerDeckGO.GetComponent<Enemy_Turn> ().enabled = !summonerDeckGO.GetComponent<Enemy_Turn> ().enabled;
 
-        if ((index > 0) && (index <= theHand.getHandCount()))  //if index out of bounds for the hand size
-        {
-            foreach (Card theCard in CardsPlayed)
-            {
-                if (theCard == theHand.hand[index - 1])
-                    CardsPlayed.Remove(theHand.hand[index - 1]); //remove index card if already played
-                return; //break method in this case
-            }
+	}
 
-            CardsPlayed.Add(theHand.hand[index - 1]); //add index card to CardsPlayed, if everything safe
-        }
+	//==================================================================== SUMMONER METHODS ===========================================================================
 
-        else return; //break method if index out of bounds
-    }
+	public bool summonedRitual(List<GameObject> ritualSummon)
+	{
 
-
-    public void ToggleMitigate(int index, ref List<Card> MitigateWithCards, ref List<Card> MitigatingWith)
-    {
-
-        if ((index > 0) && (index <= MitigateWithCards.Count ))  //if index out of bounds for the hand size
-        {
-            foreach (Card theCard in MitigatingWith)
-            {
-                if (theCard.cardValue == MitigateWithCards[index - 1].cardValue)
-                { if (theCard.Suit == MitigateWithCards[index - 1].Suit)
-                        MitigatingWith.Remove(theCard);
-                    //remove index card if exactly same card already played, otherwise
-
-                    return; //break method in any case when same value card played
-                }
-            }
-
-            MitigatingWith.Add(MitigateWithCards[index - 1]); //add index card to CardsPlayed, if everything safe
-        }
-
-        else return; //break method if index out of bounds
-    }
+		//receives list of cards, but it can only have ONE card to be placed. If it has more than 1, or if it's not a face card(value = 8,9,10), returns false
+		if (ritualSummon.Count != 1 || (int)ritualSummon [0].GetComponent<CardModel> ().cardValue < 8)
+		{
+			//card not fit for summon
+			Debug.Log("Hand is invalid for a summon");
+			return false;
+		}
+		else
+		{
+			//card can be used for summon
+			summonZone.summonCardToSummonZone(ritualSummon[0]);//GIVING ME SOME ERROR
+			summonerHand.Invoke("displayCards",Time.deltaTime);
+			return true;//card properly summoned;
+		}
+	}
 
 
-    public bool doExorcistAttack(List<Card> AttackWithCards)
-    {
 
-        int AttackValue = 0;
+	public int summonerAttacked(List<GameObject> summonerAttack)
+	{
+		//summoner attack must be a straight
+		//TODO
 
-        if (!isExorcistTurn)
-            return false;
+		//if hand size == 1, it's an automatic straight
+		if (summonerAttack.Count == 1)
+		{
+			return (int)summonerAttack [0].GetComponent<CardModel> ().cardValue;
+		}
 
-            //int ExorcistAttack = 1; //defaulted
-                                    // int ExorcistHeal = 1; //defaulted
 
-        foreach (Card theCard in AttackWithCards) // correct enumeration error for AttackWithCards?
-        {            AttackValue = AttackValue + (int)theCard.cardValue;
-            if (theCard.Suit != AttackWithCards[0].Suit) //exorcist flush = attack
-                return false; //no flush no attack
-        }
+		//must arrange hand before a straight can be checked
+		summonerAttack = summonerAttack.OrderBy( x => x.GetComponent<CardModel>().cardValue ).ToList();
 
-        //if (ExorcistAttack == 0) return false;
-        //Check that all in List are of same suit and that cards are from ExorcistHand 
-            
+		Debug.Log ("After sort");
+		foreach (GameObject card in summonerAttack)
+		{
+			Debug.Log ("Current card: " + card.GetComponent<CardModel> ().cardValue + " of " + card.GetComponent<CardModel> ().cardSuit);
+		}
 
-            //Check that there is nothing in Summon Zone
-            if (SummonZone.getHandCount() == 0) //if Summon Zone empty, attack library
 
-        {
-            SummonerLibraryCard = SummonerLibrary.GetTopCard(); //FirstOrDefault();
+		int damage = 0;
+		for (int i = 0; i < summonerAttack.Count-1; i++)
+		{
+			if (summonerAttack [i].GetComponent<CardModel> ().cardValue == summonerAttack [i + 1].GetComponent<CardModel> ().cardValue - 1)//if current is just one lower than next
+			{
+				damage += summonerAttack [i].GetComponent<CardModel> ().cardValue;
+				continue;
+			}
 
-            while (AttackValue > 0)
-            {
-                if ((int)SummonerLibraryCard.cardValue <= AttackValue)
-                {
-                    SummonerHP = SummonerHP - (int)SummonerLibraryCard.cardValue; //change HP
-                    AttackValue = AttackValue - (int)SummonerLibraryCard.cardValue; //remaining attackvalue
-                    //SummonerDiscard.Add(SummonerLibraryCard); // (Takes it and removes it)
-                    SummonerLibrary.TakeCard();    //REMEMBER TO ADD TO DISCARD PILE
-                    // Exorcist must also draw one card
-                    ExorcistHand.addCard(ExorcistLibrary.TakeCard());
-                }
-                else
-                {
-                    AttackValue = -1; //go out of the loop
-                    // keep showing the last card on top of the SummonerLibrary
-                }
+			else//not a straight
+			{
+				return -1;
+			}
+		}
+		//must add last card, left loop before that happened
+		damage+=summonerAttack[summonerAttack.Count-1].GetComponent<CardModel>().cardValue;
+		//if it got here means attack is valid
+		return damage;
+	}
 
-             }
+	public bool summonerSacrificeDrew(List<GameObject> summonerSacrifice)
+	{
+		//sacrifices some cards to be able to draw new ones
+		//hand of 2 or 3 cards only
+		if (summonerSacrifice.Count == 2 && summonerSacrifice[0].GetComponent<CardModel>().cardValue==summonerSacrifice[1].GetComponent<CardModel>().cardValue)
+		{
+			//run draw method twice
+			summonerHand.addSummonerCard ();
+			summonerHand.addSummonerCard ();
+			return true;
+		}
+		//if hand has 3 cards of equal value
+		else if (summonerSacrifice.Count == 3 && summonerSacrifice[0].GetComponent<CardModel>().cardValue==summonerSacrifice[1].GetComponent<CardModel>().cardValue
+				&& summonerSacrifice[0].GetComponent<CardModel>().cardValue==summonerSacrifice[2].GetComponent<CardModel>().cardValue)
+		{
+			//run draw method three times
+			summonerHand.addSummonerCard ();
+			summonerHand.addSummonerCard ();
+			summonerHand.addSummonerCard ();
+			return true;
 
-            }
+		}
+		else//invalid hand
+			return false;
+	}
 
-        else //attack Summon Zone
-        {
-            int i = 0; //choose a card to be attacked (0,1,2)
+	public void checkSummonerVictory()
+	{
+		//if exorcist's life is less than 0 or their deck is over or summoner summoned 3 cards, summoner wins
+		if (exorcistDeckGO.GetComponent<DeckScript> ().deck.getRemainingCards() <= 0 || currentExorcistHP <= 0 || summonZone.hand.Count>=3)
+		{
+			summonerWon ();
+		}
 
-            if ( (int)SummonZone.hand[i].cardValue <= AttackValue)
-            {
-                SummonerHP = SummonerHP - (int)SummonZone.hand[i].cardValue; //change HP
-                SummonZone.hand.Remove(SummonZone.hand[i]); // (Takes it and removes it)                                     
-                // SummonZone[i].Discard;   //REMEMBER TO ADD TO DISCARD PILE
-            }
-            // Debug.Log("Not enough attack value to destroy that Summoned Card");
-            else return false; //attack too small means no attack
-        }
+	}
 
-        //finally, take the cards played from the Exorcist's hand, and discard them
-        foreach (Card theCard in AttackWithCards)
-            ExorcistHand.removeCard(theCard); ;// (Takes it and removes it) 
-           // SummonZone[i].Discard;   //REMEMBER TO ADD TO DISCARD PILE
+	public void summonerWon()
+	{
+		//is called if summoner wins the match
+		//TODO
+	}
 
-        //Do changes to game state (hit points - done, remove cards from hand - done, etc)
 
-        return true;
-        //return true if success; false if failed or illegal move
-    }
+	//===================================================================== EXORCIST METHODS =========================================================================
 
-    public bool doExorcistHeal(List<Card> HealWithCards)
-    {
-        if (!isExorcistTurn) //Healing only for Exorcist
-            return false;
 
-        //First, check if there are exactly two cards.
-        if (HealWithCards.Count != 2)
-            //message to player - must play exactly two cards (of equal value)
-            return false;
+	public int exorcistAttacked(List<GameObject> exorcistAttack)
+	{
+		//if the cards chosen are from a valid exorcist attack, returns a value >0; else, returns -1
 
-        //If so, check that they are of equal value (a pair)
-        if (HealWithCards[0].cardValue != HealWithCards[1].cardValue)
-            //message to player - not a pair
-            return false;
+		//a one-card flush is valid; so, if it only has one card, return it immediately
+		if (exorcistAttack.Count == 1)
+		{
+			return (int)exorcistAttack [0].GetComponent<CardModel> ().cardValue;
+		}
+		int damage = 0;
+		//from here on, it's at least 2 cards
+		for(int i = 0; i < exorcistAttack.Count-1;i++)
+		{
+			//needs to be a flush(all of same suit), so if it suit changes, we can say it's not a flush
+			if (exorcistAttack [i].GetComponent<CardModel> ().cardSuit == exorcistAttack [i + 1].GetComponent<CardModel> ().cardSuit)
+			{
+				damage+=(int)exorcistAttack [i].GetComponent<CardModel> ().cardValue;//gets the damage(won't get the last one, must be gotten outside for loop)
+				continue;
+			}
+			else
+			{
+				//if it got to this else, means its not flush ,diff suits
+				return -1;
 
-        //If so, add the value of each card in turn to the Exorcist's HP
-        foreach (Card theCard in HealWithCards)
-        {
-            ExorcistHP = ExorcistHP + (int)theCard.cardValue;
-        }
+			}
+			
+		}
+		return damage+ (int)exorcistAttack[exorcistAttack.Count-1].GetComponent<CardModel>().cardValue;
+		//returns damage value; needs to implement actual attack on deck(or summon zone, depends)
+	}
 
-        //finally, take the cards played from the Exorcist's hand, and discard them
-        foreach (Card theCard in HealWithCards)
-            // (Takes it and removes it) 
-            ExorcistHand.hand.Remove(theCard);
-            //ExorcistDiscard.Add(HealWithCards.TakeCard(theCard));
-               // SummonZone[i].Discard;   //REMEMBER TO ADD TO DISCARD PILE
 
-        //Do changes to game state (hit points - done, remove cards from hand - done, etc)
+	public bool exorcistHealed(List<GameObject> exorcistHeal)
+	{
+		//must be a pair of equal values, nothing else
+		//returns are just to indicate if it worked
+		if (exorcistHeal.Count == 2 && exorcistHeal [0].GetComponent<CardModel> ().cardValue == exorcistHeal [1].GetComponent<CardModel> ().cardValue)
+		{
+			currentExorcistHP+= (int)exorcistHeal [0].GetComponent<CardModel> ().cardValue * 2;//will heal the total value of the pair
+			if (currentExorcistHP > exorcistHP)
+			{
+				currentExorcistHP = exorcistHP;//cap at max
+			}
+			return true;
+		}
+		else
+			return false;
+	}
 
-        return true;
-        //return true if success; false if failed or illegal move (done)
 
-    }
+	public int mitigateSummonerAttack(List<GameObject> summonerAttack, List<GameObject> exorcistDefense)
+	{
+		//returns resultant damage to be taken if player defense can somehow defend themselves from the summoner's attack
+		//if they can't(invalid hand), return -1 or -2 and player must redo their hand
+		//player can't "discard" cards by using more cards than necessary; that will lead to an invalid hand
+
+		//Returns:
+		//0+: amount of damage the player will take
+		//-1: invalid hand(oversized)
+		//-2: invalid combination(one or more cards would not make any difference in the calculation)
+
+		//first, check if hand is valid;exorcist should have only used number of cards less than or equal to summoner's
+		if (exorcistDefense.Count > summonerAttack.Count)
+			return -1;
+
+		//get the total damage that would be dealt
+		int damage = 0;
+		foreach (GameObject card in summonerAttack)
+		{
+			damage += card.GetComponent<CardModel> ().cardValue;
+		}
+
+
+		//need to arrange them in order, to make it easier to make the checks
+		summonerAttack = summonerAttack.OrderBy( x => x.GetComponent<CardModel>().cardValue ).ToList();
+		exorcistDefense = exorcistDefense.OrderBy (x => x.GetComponent<CardModel> ().cardValue).ToList ();
+
+
+		//3 cases, depending on size of summoner hand
+		switch (summonerAttack.Count)
+		{
+		case 1:
+			//easiest, checks if any of the exorcist's cards is either bigger or smaller than the summoner's
+			//if so, damage will be mitigated
+			foreach (GameObject card in exorcistDefense)
+			{
+				if (card.GetComponent<CardModel> ().cardValue == summonerAttack [0].GetComponent<CardModel> ().cardValue - 1
+					|| card.GetComponent<CardModel> ().cardValue == summonerAttack [0].GetComponent<CardModel> ().cardValue + 1)
+				{
+					return 0;//only card in exorcist hand mitigated only card used by summoner; no damage dealt
+				}
+			}
+			break;
+		case 2:
+			//here we must check the summoner's pair against the exorcist hand(which may be 1 or 2 cards)
+
+			if (exorcistDefense.Count == 1)
+			{
+				if (exorcistDefense [0].GetComponent<CardModel> ().cardValue == summonerAttack [0].GetComponent<CardModel> ().cardValue - 1)
+				{
+					//mitigates damage from lowest card
+					return damage - (int)summonerAttack [0].GetComponent<CardModel> ().cardValue;
+				} 
+				else if (exorcistDefense [0].GetComponent<CardModel> ().cardValue == summonerAttack [1].GetComponent<CardModel> ().cardValue + 1)
+				{
+					//mitigates damage from highest card
+					return damage - (int)summonerAttack [1].GetComponent<CardModel> ().cardValue;
+				}
+			}
+
+			//only other possible case is exorcist having two cards. 
+			//In this case, the two MUST, in order, nullify the summoner's cards
+			else
+			{
+				if (exorcistDefense [0].GetComponent<CardModel> ().cardValue == summonerAttack [0].GetComponent<CardModel> ().cardValue - 1
+					&& exorcistDefense [1].GetComponent<CardModel> ().cardValue == summonerAttack [1].GetComponent<CardModel> ().cardValue + 1)
+				{
+					return 0;
+				}
+			}
+			break;
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+			//in this case we either have 1 card mitigating one of the extremity ones, or two cards mitigating both extremities
+			if (exorcistDefense.Count == summonerAttack.Count)
+			{
+				//can't, too many cards
+				return -1;
+			} else if (exorcistDefense.Count == 1)
+			{
+				if (exorcistDefense [0].GetComponent<CardModel> ().cardValue == summonerAttack [0].GetComponent<CardModel> ().cardValue - 1)
+				{
+					//mitigates damage from lowest card
+					return damage - (int)summonerAttack [0].GetComponent<CardModel> ().cardValue;
+				} 
+				else if (exorcistDefense [0].GetComponent<CardModel> ().cardValue == summonerAttack [summonerAttack.Count-1].GetComponent<CardModel> ().cardValue + 1)
+				{
+					//mitigates damage from highest card
+					return damage - (int)summonerAttack [summonerAttack.Count-1].GetComponent<CardModel> ().cardValue;
+				}
+			}
+			else//exorcist count = 2
+			{
+				//then exorcist cards MUST nullify lower and higher summoner cards 
+				if (exorcistDefense [0].GetComponent<CardModel> ().cardValue == summonerAttack [0].GetComponent<CardModel> ().cardValue - 1
+					&& exorcistDefense [1].GetComponent<CardModel> ().cardValue == summonerAttack [summonerAttack.Count - 1].GetComponent<CardModel> ().cardValue + 1)
+				{
+					return damage - (int)summonerAttack[0].GetComponent<CardModel>().cardValue - (int)summonerAttack[summonerAttack.Count-1].GetComponent<CardModel>().cardValue;
+				}
+			}
+			break;
+		
+		default:
+			break;
+		}
+		//if none of the cases above were successful, means the hand is invalid
+		return -2;
+	}
+		
+
+	public void checkExorcistVictory()
+	{
+		//if exorcist's life is less than 0 or their deck is over, summoner wins
+		if (summonerDeckGO.GetComponent<DeckScript> ().deck.getRemainingCards() <= 0 || currentSummonerHP <= 0)
+		{
+			exorcistWon ();
+		}
+
+	}
+
+	public void exorcistWon()
+	{
+		//is called if exorcist wins the match
+		//TODO
+	}
+
+	/* 
 
     public bool doSummonerAttack(List<Card> AttackWithCards)
     {

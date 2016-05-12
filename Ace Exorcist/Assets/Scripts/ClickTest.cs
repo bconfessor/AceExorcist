@@ -21,15 +21,14 @@ public class ClickTest : MonoBehaviour {
 			{
 				if (col.gameObject.tag == "card") 
 				{
-					//if it clicks on a card, it takes it out of the game
-					//First, out of the deck...
-					Debug.Log ("This is "+col.gameObject.GetComponent<CardModel>().cardValue+" of "+col.gameObject.GetComponent<CardModel>().cardSuit);
-					//col.gameObject.transform.parent.GetComponent<Hand> ().removeCard (col.gameObject);
 
-					Hand parentHand = col.gameObject.transform.parent.GetComponent<Hand> ();
 
-					//when clicked, card must be (un)selected
-					col.GetComponent<CardModel> ().toggleCard ();
+					//Hand parentHand = col.gameObject.transform.parent.GetComponent<Hand> ();
+
+					//when clicked, card must be (un)selected(Only if it's the current player's card)
+					if (AceExorcistGame.instance.isExorcistTurn && col.gameObject.transform.parent.tag == "exorcistHand"
+					   || !AceExorcistGame.instance.isExorcistTurn && col.gameObject.transform.parent.tag == "summonerHand")
+						col.GetComponent<CardModel> ().toggleCard ();
 
 				}
 			}

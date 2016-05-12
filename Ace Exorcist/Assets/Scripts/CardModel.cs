@@ -20,7 +20,7 @@ public class CardModel : MonoBehaviour {
 
 
 	public int cardIndex;//do I need this in the end...?
-	public float toggleMovement = 3.0f;//how much the card goes up and down when toggled
+	public float toggleMovement = 6.0f;//how much the card goes up and down when toggled
 
 
 	//flags to control card state
