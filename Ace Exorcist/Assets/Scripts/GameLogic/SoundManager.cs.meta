@@ -1,0 +1,28 @@
+fileFormatVersion: 2
+guid: 9fa92e8139056da45a1896cafef860e0
+timeCreated: 1463360200
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - source: {instanceID: 0}
+  - exorcistLightAttack: {fileID: 8300000, guid: 82e4c5797b8922f49b0733705fd892a1,
+      type: 3}
+  - exorcistHeavyAttack: {fileID: 8300000, guid: 4753b6a3be4cfc84e8eb0a06871a6433,
+      type: 3}
+  - exorcistHeal: {fileID: 8300000, guid: cd41ea44ca8d7574c8472a1f3b674346, type: 3}
+  - exorcistPass: {fileID: 8300000, guid: 0afe26d356d5ed44898c6203660dfe30, type: 3}
+  - exorcistVictory: {fileID: 8300000, guid: f1622a1ce7d9c084da30c50cf839e934, type: 3}
+  - summonerLightAttack: {fileID: 8300000, guid: 20b6fe5f29970a242b62d1d61203cc42,
+      type: 3}
+  - summonerHeavyAttack: {fileID: 8300000, guid: 198c8dcc223dc074dae56b9df78f68b6,
+      type: 3}
+  - summonerDraw: {fileID: 8300000, guid: 27731dfa5fdc30c45a9b218a268868a6, type: 3}
+  - summonerPass: {fileID: 8300000, guid: 34c0bd800a2539d48a0f1758615917c2, type: 3}
+  - summonerSummoning: {fileID: 8300000, guid: 9b89b3fa15535974bb7f481b8f9ec3b6, type: 3}
+  - summonerVictory: {fileID: 8300000, guid: 7ae7dc4d924c2934e9ed8a8010f6a8bc, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

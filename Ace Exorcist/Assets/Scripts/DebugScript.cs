@@ -6,13 +6,13 @@ public class DebugScript : MonoBehaviour {
 	int cardIndex;
 	CardModel cardModel;
 
-	CardFlipper flipper;
+	CardAnimations flipper;
 
 	// Use this for initialization
 	void Start () {
-		cardModel = GameObject.Find ("Card").GetComponent<CardModel> ();
+		cardModel = GameObject.FindGameObjectWithTag ("description").GetComponent<CardModel> ();
 		cardIndex = 0;
-		flipper = GameObject.Find("Card").GetComponent<CardFlipper> ();
+		flipper = GameObject.FindGameObjectWithTag("description").GetComponent<CardAnimations> ();
 	}
 
 

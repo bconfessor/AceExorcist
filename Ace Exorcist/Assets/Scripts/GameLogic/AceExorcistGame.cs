@@ -35,11 +35,15 @@ public class AceExorcistGame : MonoBehaviour
 	public int currentExorcistHP, currentSummonerHP;
     public int maxHandSize = 6;
 
+
 	//flags to control game flow
     public bool isExorcistTurn = false;//holds whether it's the exorcist's turn or the summoner's
 	public bool isExorcist = true;//used for deck building, hand control, among other things
+	public bool exorcistMitigating = false;//true when exorcist is choosing cards to mitigate damage
 	public bool exorcistAlive = true;
 	public bool summonerAlive = true;
+	public bool summonerWins = false;
+	public bool exorcistWins = false;
 
 
 	void Awake()
@@ -74,7 +78,8 @@ public class AceExorcistGame : MonoBehaviour
 		currentSummonerHP = summonerHP;
 		exorcistAlive = true;
 		summonerAlive = true;
-
+		summonerWins = false;
+		exorcistWins = false;
 
 		//how to properly reset hand...?(like this I guess)
 		//TODO
@@ -128,6 +133,9 @@ public class AceExorcistGame : MonoBehaviour
 	public void currentTurnEnded()
 	{
 		//can be used for both players, since MainGameLoop controls flow
+		//untoggle all cards to prevent errors
+		exorcistHand.untoggleAllCards();
+		summonerHand.untoggleAllCards ();
 		//invert the enabled scripts(that will change the boolean accordingly)
 		exorcistDeckGO.GetComponent<Player_Turn> ().enabled = !exorcistDeckGO.GetComponent<Player_Turn> ().enabled;
 		summonerDeckGO.GetComponent<Enemy_Turn> ().enabled = !summonerDeckGO.GetComponent<Enemy_Turn> ().enabled;
@@ -143,19 +151,70 @@ public class AceExorcistGame : MonoBehaviour
 		if (ritualSummon.Count != 1 || (int)ritualSummon [0].GetComponent<CardModel> ().cardValue < 8)
 		{
 			//card not fit for summon
-			Debug.Log("Hand is invalid for a summon");
+			UIManager.instance.displayNewText ("Hand is invalid for a summon");
 			return false;
-		}
-		else
+		} else
 		{
 			//card can be used for summon
-			summonZone.summonCardToSummonZone(ritualSummon[0]);//GIVING ME SOME ERROR
-			summonerHand.Invoke("displayCards",Time.deltaTime);
-			return true;//card properly summoned;
+			summonZone.summonCardToSummonZone (ritualSummon [0]);//GIVING ME SOME ERROR
+			summonerHand.Invoke ("displayCards", Time.deltaTime);
+
+			//summoner may have won by invoking last card; check
+			checkSummonerVictory();
+
+			if (!summonerWins)//if summoner didn't win with this last summon
+			{
+				//play sound for summoning
+				SoundManager.instance.playSummonSound ();
+			}
+
+			return true;//card 	properly summoned;
 		}
 	}
 
+	public void callSummonerAttack()
+	{
+		//TODO:Summoner attack method still incomplete; complete it
+		int damageToExorcist = summonerAttacked(summonerHand.getToggledCards());
+		//if hand is invalid, damage = -1
+		if (damageToExorcist < 0)
+		{
+			UIManager.instance.displayNewText ("Invalid hand, attack must be a straight.");
+		} else//summoner hand is valid, proceed to checking for possible exorcist mitigation
+		{
+			//locks all buttons but yes/no
+			ButtonManager.instance.deactivateAllButtons();
+			UIManager.instance.displayChoicePanel ();
 
+			//play summoner attack sound; if less than three cards, counts as light attack; if three or more, heavy attack
+			if (summonerHand.getToggledCards ().Count >= 3)//heavy attack
+			{
+				SoundManager.instance.playHeavyAttackSound ("summoner");
+			} 
+			else
+				SoundManager.instance.playLightAttackSound ("summoner");
+
+			UIManager.instance.displayNewText ("Summoner charged an attack! Will the exorcist try to mitigate the damage?");
+			//if player says "yes", then it starts the coroutine;to be called inside yes button
+		}
+
+
+		/*
+			if(false)
+			{
+
+			}
+			else//exorcist decided not to mitigate damage
+			{
+				currentExorcistHP -= summonerHand.getCardsPower ();
+				if (currentExorcistHP < 0)
+					currentExorcistHP = 0;
+				UIManager.instance.updateHealthUI ();
+			}
+			checkSummonerVictory ();
+			ButtonManager.instance.actionCompleted ();
+		}*/
+	}
 
 	public int summonerAttacked(List<GameObject> summonerAttack)
 	{
@@ -172,11 +231,11 @@ public class AceExorcistGame : MonoBehaviour
 		//must arrange hand before a straight can be checked
 		summonerAttack = summonerAttack.OrderBy( x => x.GetComponent<CardModel>().cardValue ).ToList();
 
-		Debug.Log ("After sort");
+		/*UIManager.instance.displayNewText ("After sort");
 		foreach (GameObject card in summonerAttack)
 		{
-			Debug.Log ("Current card: " + card.GetComponent<CardModel> ().cardValue + " of " + card.GetComponent<CardModel> ().cardSuit);
-		}
+			UIManager.instance.displayNewText ("Current card: " + card.GetComponent<CardModel> ().cardValue + " of " + card.GetComponent<CardModel> ().cardSuit);
+		}*/
 
 
 		int damage = 0;
@@ -199,31 +258,60 @@ public class AceExorcistGame : MonoBehaviour
 		return damage;
 	}
 
+
+
+
 	public bool summonerSacrificeDrew(List<GameObject> summonerSacrifice)
 	{
-		//sacrifices some cards to be able to draw new ones
+		//sacrifices some cards(they must have same value) to be able to draw new ones
 		//hand of 2 or 3 cards only
 		if (summonerSacrifice.Count == 2 && summonerSacrifice[0].GetComponent<CardModel>().cardValue==summonerSacrifice[1].GetComponent<CardModel>().cardValue)
 		{
-			//run draw method twice
+			//remove toggled cards and run draw method three times
+			summonerHand.removeToggledCards();
 			summonerHand.addSummonerCard ();
 			summonerHand.addSummonerCard ();
+			summonerHand.addSummonerCard ();
+			SoundManager.instance.playHealDrawSound ("summoner");
 			return true;
 		}
 		//if hand has 3 cards of equal value
 		else if (summonerSacrifice.Count == 3 && summonerSacrifice[0].GetComponent<CardModel>().cardValue==summonerSacrifice[1].GetComponent<CardModel>().cardValue
 				&& summonerSacrifice[0].GetComponent<CardModel>().cardValue==summonerSacrifice[2].GetComponent<CardModel>().cardValue)
 		{
-			//run draw method three times
+			//remove toggled cards and run draw method four times
+			summonerHand.removeToggledCards();
 			summonerHand.addSummonerCard ();
 			summonerHand.addSummonerCard ();
 			summonerHand.addSummonerCard ();
+			summonerHand.addSummonerCard ();
+			SoundManager.instance.playHealDrawSound ("summoner");
 			return true;
 
 		}
 		else//invalid hand
 			return false;
 	}
+
+
+	public void summonerDamaged()
+	{
+		currentSummonerHP -= exorcistHand.getCardsPower ();
+		if (currentSummonerHP < 0)
+			currentSummonerHP = 0;
+		UIManager.instance.updateHealthUI ();
+		checkExorcistVictory ();
+	}
+
+	public void summonerDamaged(int damage)//does custom damage; to be used with mitigation
+	{
+		currentSummonerHP -= damage;
+		if (currentSummonerHP < 0)
+			currentSummonerHP = 0;
+		UIManager.instance.updateHealthUI ();
+		checkExorcistVictory ();
+	}
+
 
 	public void checkSummonerVictory()
 	{
@@ -239,10 +327,50 @@ public class AceExorcistGame : MonoBehaviour
 	{
 		//is called if summoner wins the match
 		//TODO
+		summonerWins = true;
+		SoundManager.instance.playVictorySound("summoner");
+		SoundManager.instance.Invoke("playGameOverSound",2.2f);
 	}
 
 
 	//===================================================================== EXORCIST METHODS =========================================================================
+
+	public void callExorcistAttack()//direct attack to summoner deck
+	{
+		//TODO: implement part where cards from summoner are drawn and destroyed
+
+		//call exorcist attack with exorcist toggled cards
+		int damageToSummoner = exorcistAttacked(exorcistHand.getToggledCards());
+		//if damage = -1, invalid hand
+		if (damageToSummoner < 0)
+		{
+			UIManager.instance.displayNewText ("Invalid hand, attack must be a flush");
+		}
+		else//valid attack
+		{
+			UIManager.instance.displayNewText ("Exorcist Attacked!");
+			//for now, take damage directly to summoner health
+			currentSummonerHP-=exorcistHand.getCardsPower();
+			if (currentSummonerHP < 0)
+				currentSummonerHP = 0;
+
+			//plays sound for attack; if less than 3 cards were used, light attack;if used more than two cards, it is considered a heavy attack
+			if (exorcistHand.getToggledCards ().Count >= 3)
+				SoundManager.instance.playHeavyAttackSound ("exorcist");
+			else
+				SoundManager.instance.playLightAttackSound ("exorcist");
+
+			exorcistHand.removeToggledCards ();//after attack, must remove used cards
+			UIManager.instance.updateHealthUI ();
+			AceExorcistGame.instance.checkExorcistVictory ();
+
+
+
+			ButtonManager.instance.actionCompleted ();
+		}
+
+	}
+
 
 
 	public int exorcistAttacked(List<GameObject> exorcistAttack)
@@ -277,6 +405,75 @@ public class AceExorcistGame : MonoBehaviour
 	}
 
 
+	public void exorcistAttackedSummonCard(List<GameObject> exorcistAttack, GameObject summonAttacked)
+	{
+		//if there is a summon card in the summon zone, this method can be called
+		//TODO
+		//exorcist hand must be a valid flush bigger than 2 cards
+		if (exorcistAttack.Count >= 2 && handIsFlush (exorcistAttack))
+		{
+			//check if the hand has enough power to destroy that summon
+			int damage = 0;
+			foreach (GameObject card in exorcistAttack)
+			{
+				damage += card.GetComponent<CardModel> ().cardValue;
+			}
+
+			if (damage >= (int)summonAttacked.GetComponent<CardModel> ().cardValue)
+			{
+				//summoner takes damage equal to the summon card that was destroyed
+				summonerDamaged((int)summonAttacked.GetComponent<CardModel>().cardValue);
+				//destroy summon card, destroy hand used by exorcist
+				summonZone.removeCard(summonAttacked);
+				exorcistHand.removeToggledCards ();
+			}
+			else//hand is not strong enough
+			{
+				UIManager.instance.displayNewText ("Chosen hand is not powerful enough to destroy the summon!");
+			}
+
+		}
+
+	}
+
+
+	public bool handIsFlush(List<GameObject> cards)
+	{
+		//returns true if hand is a proper flush; else, returns false
+		//if there are no cards, obviously it's not a flush
+		if (cards.Count == 0)
+		{
+			return false;
+		}
+
+		//if there's only one card in hand, it's an automatic flush
+		else if (cards.Count == 1)
+		{
+			return true;
+		} 
+		else//cards >= 2
+		{
+			for(int i = 0; i < cards.Count-1;i++)
+			{
+				//needs to be a flush(all of same suit), so if it suit changes, we can say it's not a flush
+				if (cards [i].GetComponent<CardModel> ().cardSuit == cards [i + 1].GetComponent<CardModel> ().cardSuit)
+				{
+					//damage+=(int)exorcistAttack [i].GetComponent<CardModel> ().cardValue;//gets the damage(won't get the last one, must be gotten outside for loop)
+					continue;
+				}
+				else
+				{
+					//if it got to this else, means its not flush ,diff suits
+					return false;
+				}
+			}
+			//if it reached here, then it's a flush
+			return true;
+		}
+
+	}
+
+
 	public bool exorcistHealed(List<GameObject> exorcistHeal)
 	{
 		//must be a pair of equal values, nothing else
@@ -288,6 +485,10 @@ public class AceExorcistGame : MonoBehaviour
 			{
 				currentExorcistHP = exorcistHP;//cap at max
 			}
+			//must take used cards from hand
+			exorcistHand.removeToggledCards();
+			SoundManager.instance.playHealDrawSound ("exorcist");
+
 			return true;
 		}
 		else
@@ -405,7 +606,24 @@ public class AceExorcistGame : MonoBehaviour
 		//if none of the cases above were successful, means the hand is invalid
 		return -2;
 	}
-		
+
+	public void exorcistDamaged()//gets damage directly from summoner hand
+	{
+		currentExorcistHP -= summonerHand.getCardsPower ();
+		if (currentExorcistHP < 0)
+			currentExorcistHP = 0;
+		UIManager.instance.updateHealthUI ();
+		checkSummonerVictory ();
+	}
+
+	public void exorcistDamaged(int damage)//does custom damage; to be used with mitigation
+	{
+		currentExorcistHP -= damage;
+		if (currentExorcistHP < 0)
+			currentExorcistHP = 0;
+		UIManager.instance.updateHealthUI ();
+		checkSummonerVictory ();
+	}
 
 	public void checkExorcistVictory()
 	{
@@ -421,137 +639,13 @@ public class AceExorcistGame : MonoBehaviour
 	{
 		//is called if exorcist wins the match
 		//TODO
+		exorcistWins = true;
+		SoundManager.instance.playVictorySound("exorcist");
 	}
 
 	/* 
 
-    public bool doSummonerAttack(List<Card> AttackWithCards)
-    {
-        if (isExorcistTurn)
-            return false;
-
-        int AttackValue = 0;
-
-        AttackWithCards.Sort();
-        //ORDER CARDSPLAYED - DONE
-
-        for (int counter = 0; counter < AttackWithCards.Count; counter++)  //CHECK IF CONSECUTIVE RUN
-        {
-            AttackValue = AttackValue + (int)AttackWithCards[counter].cardValue;
-
-            if (counter < AttackWithCards.Count - 1)
-              if (AttackWithCards[counter + 1].cardValue - AttackWithCards[counter].cardValue != 1)
-                    return false; //if it's not a consecutive run => break method
-        }
-
-        // ADD MITIGATE
-        // If exorcist has (AttackWithCards[0].cardValue - 1) 
-        // or (AttackWithCards[AttackWithCards.Count-1].cardValue + 1)
-        // prompt exorcist whether he would like to mitigate
-
-        //FIX MITIGATE
-
-        List<Card> MitigateWithCards=null;
-
-        foreach (Card theCard in ExorcistHand.hand)
-            if ((theCard.cardValue == AttackWithCards[0].cardValue - 1) || (theCard.cardValue == AttackWithCards[AttackWithCards.Count - 1].cardValue + 1))
-            {
-                MitigateWithCards.Add(theCard);
-            }
-
-
-        if (MitigateWithCards.Count != 0)
-            DoMitigate(ref AttackValue, MitigateWithCards);
-
-        ExorcistHP = ExorcistHP - AttackValue; // adjusted via (potentially mitigated) attack
-
-        return true;
-        //Validation
-    }
-
-    public bool doSummonerPlaySummon(Card SummonCard)
-    {
-        if (isExorcistTurn) //Only for Summoner
-            return false;
-
-        //Check that it's a Face card, allowed in Summon Zone
-        if ((int)SummonCard.cardValue > 1 && (int)SummonCard.cardValue < 8)
-            //message to player - not a Face Card so can't be part of Summons
-            return false;
-
-        //If it is, remove it from the Summoner's hand and add it to Summon Zone
-        SummonZone.hand.Remove(SummonCard); // (Takes it and removes it) 
-
-        //Do changes to game state (hit points - done, remove cards from hand - done, etc)
-
-        return true;
-        //return true if success; false if failed or illegal move (done)
-
-    }
-
-    public bool doSummonerDraw(List<Card> DrawWithCards)
-    {
-        if (isExorcistTurn)
-            return false;
-
-        //Validation
-        //First, check if there are exactly two or three cards.
-        if (DrawWithCards.Count != 2 && DrawWithCards.Count != 3)
-            //message to player - must play exactly two or three cards (of equal value)
-            return false;
-
-        //If so, check that they are of equal value (a pair or triad)
-        for (int i=0; i<2; i++)
-        {
-            if (DrawWithCards[i].cardValue != DrawWithCards[i + 1].cardValue)
-                //message to player - cards played must be of equal value
-                return false;
-        }
-
-        //Discard the cards played and draw new cards
-        foreach (Card theCard in DrawWithCards)
-        {
-            DrawWithCards.Remove(theCard); //remove the card used to draw
-            ExorcistHand.addCard(ExorcistLibrary.TakeCard());
-            // draw a new card from ExorcistLibrary and add it to ExorcistHand
-        }
-
-        //Finally return true
-        return true;
-
-    }
-
-    public bool DoMitigate(ref int AttackValue, List<Card> MitigateWithCards)
-    {
-        if (SummonZone != null)
-            return false; //cannot mitigate when there's an attack on summons
-
-        else
-        {
-            List<Card> MitigatingWith = null;
-            //select which cards to actually mitigate with (out of MitigateWithCards) - DONE in ToggleMitigate
-
-            // ToggleMitigate(input, MitigateWithCards, MitigatingWith)
-            // for this version of ToggleCard we need to make sure no two cards have the same cardValue -DONE
-
-            int sum = 0;
-
-            foreach (Card theCard in MitigatingWith)
-            {
-                ExorcistHand.removeCard(theCard); //removing from exorcist hand
-                sum = sum + (int)theCard.cardValue; //total mitigation
-            }
-                AttackValue = AttackValue - sum; //adjusted attack value
-
-            return true;
-        }
-
-        //Validation
-
-        // DO NOT DRAW CARDS WHEN ONE CHOOSES TO MITIGATE
-
-    }
-
+    
     public bool CheckVictorySummoner()
     {
         if ((SummonZone.hand.Count == 3) || (ExorcistHP <= 0))

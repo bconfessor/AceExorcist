@@ -111,6 +111,7 @@ namespace Cards.Collections
 			}
 
 		}
+			
 
 
         public Card GetTopCard()

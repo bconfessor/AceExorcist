@@ -49,11 +49,11 @@ public class  DeckScript : MonoBehaviour {
 
 		//create references to the player's Hand component and the enemy's, depending on who's this script parent
 		if (playerDeck) {
-			playerHand = GameObject.Find ("ExorcistHand").GetComponent<Hand> ();
+			playerHand = AceExorcistGame.instance.exorcistHand;
 		} 
 		else
 		{
-			playerHand = GameObject.Find ("SummonerHand").GetComponent<Hand> ();
+			playerHand = AceExorcistGame.instance.summonerHand;
 		}
 
 

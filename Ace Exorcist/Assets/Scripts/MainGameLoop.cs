@@ -9,17 +9,22 @@ public class MainGameLoop : MonoBehaviour
 	//TODO: fix the click mechanic so that it clicks on a card and just on that(THINK I DID IT)
 	//TODO: FIX Sacrifice draw/heal text AND method(just tried to heal player and it didn't work)
 	//Next up: Toggling the cards up and down with a click(Done, easier than I thought)
-	//Next up: make (test)button to remove toggled cards and rearrange deck
-	//(button can later be converted into an action button, such as 'attack' or 'sacrifice')(DONE)
 
 	//Next up: Enhance the UI, create a script just for it, display and update HP of exorcist and summoner in it(DONE)
 	//Next up: Make UI prettier, get better fonts for it
 	//Next up: Make buttons interactable and uninteractable, add couple more buttons(Done)
 	//Next up: Start fixing the main game rules in AceExorcistGame.cs(STARTED)
-	//Next up: Start creating buttons that receive all the necessary methods from AceExorcistGame
-	//Next up: Implement Summon Zone, make summoner be able to place cards there
-	//Next up: Start using aforementioned buttons to create the game flow and logic
-	//Next up: 
+	//Next up: Start creating buttons that receive all the necessary methods from AceExorcistGame(Started)
+	//Next up: Implement Summon Zone, make summoner be able to place cards there(DONE)
+	//Next up: Create new canvas with Yes/No buttons to manage decisions like damage mitigation(done)
+	//Next up: FIX DAMAGE MITIGATION COROUTINE, SEEMS TO BE ENTERING IN ENDLESS LOOP(Done?)
+	//Next up: Make more text for mitigation process
+	//Next up: Enhance UI, put number of cards left in deck(DONE)
+	//Next up: Enhance Cards.collections script, make method to look at next card from deck but not take it out(DONE)
+	//Next up: Build animation for card destruction
+	//Next up: Build deck-destruction mechanism from exorcist attack
+	//Next up: Build a coroutine to work for the exorcist attack's deck-destruction mechanism, destroying one card per second
+
 
 	//Idea: divide turns into phases, like Yu-gi-oh(draw phase, action phase, end turn phase)
 

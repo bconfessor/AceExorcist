@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class CardFlipper : MonoBehaviour {
+public class CardAnimations : MonoBehaviour {
 
 	//TODO:Fix card animation
 
@@ -31,6 +31,31 @@ public class CardFlipper : MonoBehaviour {
 		StartCoroutine (Flip (startImg, endImg));
 	}
 
+	public void DeleteCard()
+	{
+		//"blinks" card twice before destroying it
+		StopCoroutine(Blink());
+		StartCoroutine (Blink ());
+	}
+
+
+	IEnumerator Blink()
+	{
+		//makes card blink twice, then destroys it
+		Color tmp = spriteRenderer.color;
+		for (int i = 0; i < 2; i++)
+		{
+			tmp.a = 1.0f;
+			spriteRenderer.color = tmp;//make card show
+			yield return new WaitForSeconds (0.20f);
+			tmp.a = 0f;
+			spriteRenderer.color = tmp;//make invisible
+			yield return new WaitForSeconds (0.20f);
+
+		}
+		//after this, destroy object
+		DestroyImmediate(gameObject);
+	}
 
 	//flips the card, doesn't modify the card index
 	IEnumerator Flip(Sprite startImg, Sprite endImg)

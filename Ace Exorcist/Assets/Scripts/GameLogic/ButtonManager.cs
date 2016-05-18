@@ -5,16 +5,21 @@ using System.Collections.Generic;
 
 public class ButtonManager : MonoBehaviour {
 
+	//TODO: Make Yes/No button to work with damage mitigation
 
 	public static ButtonManager instance;
 
 	public GameObject summonButton, attackButton, drawButton, sacrificeButton, passButton, endTurnButton;//for now, they will be used for both players
 
 
+	public GameObject yesButton, noButton, mitigateButton, cancelMitigationButton;//only show up when exorcist is given a choice about mitigating an attack
+
 	public void Awake()
 	{
 		instance=this;
 	}
+
+	//======================================================== NORMAL BUTTON METHODS =======================================================================
 
 	public void pressedDrawButton()
 	{
@@ -25,59 +30,30 @@ public class ButtonManager : MonoBehaviour {
 		else
 			AceExorcistGame.instance.summonerHand.GetComponent<Hand> ().addSummonerCard ();
 
+		//update amount of cards in both decks
+		UIManager.instance.Invoke("updateCardsLeftUI",Time.deltaTime);
 		//once draw is done, it becomes disabled until next turn
 		cardDrawn();
 	}
+
 	public void pressedAttackButton()
 	{
 		//if no cards were selected, give a message to select
 		if (AceExorcistGame.instance.exorcistHand.getToggledCards ().Count == 0 && AceExorcistGame.instance.summonerHand.getToggledCards ().Count == 0)
 		{
-			Debug.Log ("No cards were selected. Select card(s) before choosing an action");
+			UIManager.instance.displayNewText ("No cards were selected. Select card(s) before choosing an action");
 			return;
 		}
 
 		//gets toggled cards to check if they form a valid attack
 		if (AceExorcistGame.instance.isExorcistTurn)
 		{
-			//call exorcist attack with exorcist toggled cards
-			int damageToSummoner = AceExorcistGame.instance.exorcistAttacked(AceExorcistGame.instance.exorcistHand.getToggledCards());
-			//if damage = -1, invalid hand
-			if (damageToSummoner < 0)
-			{
-				Debug.Log ("Invalid hand, attack must be a flush");
-			}
-			else//valid attack
-			{
-				Debug.Log ("Exorcist Attacked!");
-				//for now, take damage directly to summoner health
-				AceExorcistGame.instance.currentSummonerHP-=GameObject.Find ("ExorcistHand").GetComponent<Hand> ().getCardsPower();
-				if (AceExorcistGame.instance.currentSummonerHP < 0)
-					AceExorcistGame.instance.currentSummonerHP = 0;
-				gameObject.GetComponent<UIManager> ().updateHealthUI ();
-				AceExorcistGame.instance.checkExorcistVictory ();
-				actionCompleted ();
-			}
+			AceExorcistGame.instance.callExorcistAttack ();//exorcist can simply attack
 		}
-		else//summoner turn, call summoner attack
+
+		else//summoner turn, call summoner attack, block all other buttons since exorcist might try to mitigate
 		{
-			//TODO:Summoner attack method still incomplete; complete it
-			int damageToExorcist = AceExorcistGame.instance.summonerAttacked(AceExorcistGame.instance.summonerHand.getToggledCards());
-			//if hand is invalid, damage = -1
-			if (damageToExorcist < 0)
-			{
-				Debug.Log ("Invalid hand, attack must be a straight.");
-			}
-			else
-			{
-				Debug.Log ("Summoner attacked!");
-				AceExorcistGame.instance.currentExorcistHP -= GameObject.Find ("SummonerHand").GetComponent<Hand> ().getCardsPower ();
-				if (AceExorcistGame.instance.currentExorcistHP < 0)
-					AceExorcistGame.instance.currentExorcistHP = 0;
-				gameObject.GetComponent<UIManager> ().updateHealthUI ();
-				AceExorcistGame.instance.checkSummonerVictory ();
-				actionCompleted ();
-			}
+			AceExorcistGame.instance.callSummonerAttack ();
 		}
 
 	}
@@ -88,19 +64,19 @@ public class ButtonManager : MonoBehaviour {
 		List<GameObject> summonerCard = AceExorcistGame.instance.summonerHand.getToggledCards();
 		if (summonerCard.Count == 0)
 		{
-			Debug.Log ("No cards selected. Select a valid card to summon.");
+			UIManager.instance.displayNewText ("No cards selected. Select a valid card to summon.");
 			return;
 		}
 		if (AceExorcistGame.instance.summonedRitual (summonerCard))//if it can summon, display this
 		{
-			Debug.Log ("Card Summoned!");
+			UIManager.instance.displayNewText ("Card Summoned!");
 			actionCompleted ();
 			AceExorcistGame.instance.checkSummonerVictory ();//summoner might have won by summoning three cards
 
 		}
 		else
 		{
-			Debug.Log ("Cannot use this hand for summon");
+			UIManager.instance.displayNewText ("Cannot use this hand for summon");
 		}
 
 	}
@@ -111,10 +87,13 @@ public class ButtonManager : MonoBehaviour {
 		if (AceExorcistGame.instance.isExorcistTurn)
 		{
 			AceExorcistGame.instance.exorcistHand.GetComponent<Hand> ().addExorcistCard ();
-		} 
+			SoundManager.instance.playPassSound ("exorcist");
+		}
 		else
+		{
 			AceExorcistGame.instance.summonerHand.GetComponent<Hand> ().addSummonerCard ();
-
+			SoundManager.instance.playPassSound ("summoner");
+		}
 		//after this, has same effect as pressing the End Turn button, so I'll just go ahead and call that to make my life easier
 		pressedEndTurnButton();
 	}
@@ -125,12 +104,23 @@ public class ButtonManager : MonoBehaviour {
 		//if no cards were selected, give a message to select
 		if (AceExorcistGame.instance.exorcistHand.getToggledCards ().Count == 0 && AceExorcistGame.instance.summonerHand.getToggledCards ().Count == 0)
 		{
-			Debug.Log ("No cards were selected. Select card(s) before choosing an action");
+			UIManager.instance.displayNewText ("No cards were selected. Select card(s) before choosing an action");
 			return;
-		}
-		//TODO
-		GameObject.Find ("ExorcistHand").GetComponent<Hand> ().removeToggledCards ();
-		actionCompleted ();
+		} else if (AceExorcistGame.instance.isExorcistTurn && AceExorcistGame.instance.exorcistHealed (AceExorcistGame.instance.exorcistHand.getToggledCards ()))
+		{
+			//successfully healed with the cards chosen; give feedback to player that it worked, move on
+			UIManager.instance.displayNewText ("Exorcist sacrificed some cards to heal themselves!");
+			UIManager.instance.updateHealthUI ();
+			actionCompleted ();
+		} else if (!AceExorcistGame.instance.isExorcistTurn && AceExorcistGame.instance.summonerSacrificeDrew (AceExorcistGame.instance.summonerHand.getToggledCards ()))
+		{
+			//successfully sacrificed summoner cards to draw some more; give feedback to player, move on
+			UIManager.instance.displayNewText ("Summoner sacrificed cards to draw more!"); 
+			actionCompleted ();
+		} 
+		else
+			UIManager.instance.displayNewText ("Cannot use this hand for a sacrifice!");
+
 	}
 
 	public void pressedEndTurnButton()
@@ -142,10 +132,68 @@ public class ButtonManager : MonoBehaviour {
 
 	}
 
+	//========================================================== MITIGATION BUTTON METHODS ===============================================================
+
+	public void pressedYesButton()
+	{
+		FlowManager.instance.answerChosen = true;
+		//allow exorcist to choose cards to mitigate, change yes/no panel to mitigate/cancel 
+		UIManager.instance.hideChoicePanel();
+		UIManager.instance.displayMitigationPanel ();
+
+		//turns on mitigation state so exorcist cards can be toggled
+		AceExorcistGame.instance.exorcistMitigating=true;
+
+		//starts coroutine that waits for exorcist to give mitigation cards
+		FlowManager.instance.StartCoroutine ("doExorcistMitigation");
+
+	}
+
+	public void pressedNoButton()
+	{
+		FlowManager.instance.answerChosen = false;
+		UIManager.instance.displayNewText ("Exorcist took the blunt of the attack!");
+		AceExorcistGame.instance.exorcistDamaged();
+		//exorcist was attacked, so take out the summoner's used cards
+		AceExorcistGame.instance.summonerHand.removeToggledCards();
+		UIManager.instance.hideChoicePanel ();
+		//go ahead with the full summoner attack
+		actionCompleted();
+	}
+
+	public void pressedMitigateButton()
+	{
+		//try to mitigate attack with hand chosen(if there is a chosen hand)
+		if (AceExorcistGame.instance.exorcistHand.getToggledCards ().Count > 0)
+		{
+			FlowManager.instance.cardsChosen = true;
+		}
+	}
+
+	public void pressedCancelButton()
+	{
+		//go ahead with the full summoner attack
+		UIManager.instance.displayNewText ("Exorcist took the blunt of the attack!");
+		AceExorcistGame.instance.exorcistDamaged();
+		//exorcist was attacked, so take out the summoner's used cards
+		AceExorcistGame.instance.summonerHand.removeToggledCards();
+		UIManager.instance.hideMitigationPanel();
+		AceExorcistGame.instance.exorcistMitigating = false;//gets out of the state
+		actionCompleted ();
+	}
+
 	//================================================================= BUTTON STATE METHODS =============================================================================
 
 	public void turnStarted()
 	{
+		//if it's the exorcist's turn, summon button shouldn't show up
+		if (AceExorcistGame.instance.isExorcistTurn)
+		{
+			summonButton.SetActive (false);
+		}
+		else
+			summonButton.SetActive (true);
+		
 		//when a turn starts, only the draw button is enabled
 		deactivateAllButtons();
 		drawButton.GetComponent<Button> ().interactable = true;
@@ -179,6 +227,7 @@ public class ButtonManager : MonoBehaviour {
 		summonButton.GetComponent<Button> ().interactable = false;
 		endTurnButton.GetComponent<Button> ().interactable = false;
 
+
 	}
 
 	public void reactivateAllButtons()
@@ -194,6 +243,30 @@ public class ButtonManager : MonoBehaviour {
 			//activate summon button as well
 			summonButton.GetComponent<Button>().interactable=true;
 		}
+	}
+
+	public void activateChoiceButtons()
+	{
+		yesButton.GetComponent<Button> ().interactable = true;
+		noButton.GetComponent<Button> ().interactable = true;
+	}
+
+	public void deactivateChoiceButtons()
+	{
+		yesButton.GetComponent<Button> ().interactable = false;
+		noButton.GetComponent<Button> ().interactable = false;
+	}
+
+	public void activateMitigationButtons()
+	{
+		mitigateButton.GetComponent<Button> ().interactable = true;
+		cancelMitigationButton.GetComponent<Button> ().interactable = true;
+	}
+
+	public void deactivateMitigationButtons()
+	{
+		mitigateButton.GetComponent<Button> ().interactable = false;
+		cancelMitigationButton.GetComponent<Button> ().interactable = false;
 	}
 
 	public void changeTexts()

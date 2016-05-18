@@ -10,6 +10,8 @@ public class Hand : MonoBehaviour {
 	 * 
 	*/
 
+
+
 	public GameObject CardGO;
 
 
@@ -41,7 +43,7 @@ public class Hand : MonoBehaviour {
 		//saves the GO's of each card
 		hand.Add(c);
 		currentCardNumber++;
-		//Debug.Log("Adding "+c.GetComponent<CardModel>().cardValue+" of "+c.GetComponent<CardModel>().cardSuit);
+		//UIManager.instance.displayNewText("Adding "+c.GetComponent<CardModel>().cardValue+" of "+c.GetComponent<CardModel>().cardSuit);
 		//once card is added, we must make its parent be the correct Hand
 		if (exorcistHand) {
 			c.transform.parent = AceExorcistGame.instance.exorcistHandGO.transform;//make this card a child of the exorcist hand
@@ -53,7 +55,7 @@ public class Hand : MonoBehaviour {
 
 		displayCards ();
 		//does the card flip animation
-		c.GetComponent<CardFlipper> ().FlipCard (c.GetComponent<CardModel> ().cardBack, c.GetComponent<CardModel> ().cardFace);
+		c.GetComponent<CardAnimations> ().FlipCard (c.GetComponent<CardModel> ().cardBack, c.GetComponent<CardModel> ().cardFace);
 	}
 
 	public void summonCardToSummonZone(GameObject c)
@@ -65,8 +67,8 @@ public class Hand : MonoBehaviour {
 		//removes it from summoner hand
 		AceExorcistGame.instance.summonerHand.removeCardFromHand(c);
 		c.transform.parent = AceExorcistGame.instance.summonZoneGO.transform;
-		c.GetComponent<CardFlipper> ().FlipCard (c.GetComponent<CardModel> ().cardBack, c.GetComponent<CardModel> ().cardFace);
-		Invoke ("displayCards", Time.deltaTime);
+		c.GetComponent<CardAnimations> ().FlipCard (c.GetComponent<CardModel> ().cardBack, c.GetComponent<CardModel> ().cardFace);
+		Invoke ("displayCards", 1.2f);
 	}
 
 
@@ -88,11 +90,11 @@ public class Hand : MonoBehaviour {
 		}
 		else if (currentCardNumber >= upperLimit)
 		{
-			Debug.Log ("You can't draw anymore cards");
+			UIManager.instance.displayNewText ("You can't draw anymore cards");
 		}
 		else//remaining cards <=0
 		{
-			Debug.Log ("Your deck is over!");
+			UIManager.instance.displayNewText ("Your deck is over!");
 			deckDepleted = true;
 		}
 	}
@@ -110,11 +112,11 @@ public class Hand : MonoBehaviour {
 		}
 		else if (currentCardNumber >= upperLimit)
 		{
-			Debug.Log ("You can't draw anymore cards");
+			UIManager.instance.displayNewText ("You can't draw anymore cards");
 		}
 		else//remaining cards <=0
 		{
-			Debug.Log ("Your deck is over!");
+			UIManager.instance.displayNewText ("Your deck is over!");
 			deckDepleted = true;
 		}
 	}
@@ -130,7 +132,7 @@ public class Hand : MonoBehaviour {
 		{
 			if (t.GetComponent<CardModel> ().toggled)
 			{
-				//Debug.Log (t.GetComponent<CardModel> ().cardValue + " of " + t.GetComponent<CardModel> ().cardSuit + " is toggled");
+				//UIManager.instance.displayNewText.Log (t.GetComponent<CardModel> ().cardValue + " of " + t.GetComponent<CardModel> ().cardSuit + " is toggled");
 				removeCard (t.gameObject);
 			}
 		}
@@ -138,7 +140,7 @@ public class Hand : MonoBehaviour {
 		//need to do this with invoke since, because of Destroy, cards will only get erased on the next update, so calling
 		//displayCards before then rearranges them to the same order they already are, and THEN cards dissapear, leaving gaps.
 		//so, make a delayed call to the method to give time for the cards to be Destroyed
-		Invoke("displayCards", Time.deltaTime);
+		Invoke("displayCards", 1.2f);
 	}
 
 	public void removeCardFromHand(GameObject c)
@@ -152,15 +154,15 @@ public class Hand : MonoBehaviour {
 	{
 		//same as "removeCard", but runs a display update right after
 		hand.Remove(c);
-		Destroy (c);
+		c.GetComponent<CardAnimations>().DeleteCard();//deletes card with it's effect
 		currentCardNumber--;
-		Invoke ("displayCards", Time.deltaTime);
+		Invoke ("displayCards",1.2f);
 	}
 
 	public void removeCard(GameObject c)
 	{
 		hand.Remove(c);
-		Destroy (c);
+		c.GetComponent<CardAnimations>().DeleteCard();//deletes card with it's effect
 		currentCardNumber--;
 
 	}
@@ -178,7 +180,7 @@ public class Hand : MonoBehaviour {
 
 	public int getCardsPower()
 	{
-		//gets the toggled cards, sums their attack power, and then discards them
+		//gets the toggled cards, sums their attack power, and returns it
 		int sum = 0;//sum of attack power
 		foreach (Transform t in transform)
 		{
@@ -190,8 +192,6 @@ public class Hand : MonoBehaviour {
 			}
 
 		}
-		//after the sum, discard toggled cards
-		removeToggledCards();
 		return sum;
 
 	}
@@ -224,7 +224,7 @@ public class Hand : MonoBehaviour {
 	{
 		foreach(GameObject c in hand)
 		{
-			Debug.Log(c.GetComponent<CardModel>().cardValue + " of " + c.GetComponent<CardModel>().cardSuit);
+			UIManager.instance.displayNewText(c.GetComponent<CardModel>().cardValue + " of " + c.GetComponent<CardModel>().cardSuit);
 		}
 	}
 
@@ -248,6 +248,18 @@ public class Hand : MonoBehaviour {
 			t.GetComponent<CardModel> ().toggled = false;
 			counter++;
 
+		}
+	}
+
+	public void untoggleAllCards()
+	{
+		foreach (Transform t in transform)
+		{
+			if (t.GetComponent<CardModel> ().toggled)
+			{
+				//if it's toggled, untoggle
+				t.GetComponent<CardModel>().toggleCard();
+			}
 		}
 	}
 
