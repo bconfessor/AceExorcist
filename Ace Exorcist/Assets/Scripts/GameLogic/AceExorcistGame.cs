@@ -337,6 +337,7 @@ public class AceExorcistGame : MonoBehaviour
 		summonerWins = true;
 		SoundManager.instance.playVictorySound("summoner");
 		SoundManager.instance.Invoke("playGameOverSound",2.2f);
+		UIManager.instance.Invoke ("gameOverScreenFadesIn", 2.7f);
 	}
 
 

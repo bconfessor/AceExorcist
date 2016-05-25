@@ -13,7 +13,7 @@ public class UIManager : MonoBehaviour {
 	//game objects for the mitigation panels, need to be turned on/off depending on what is happening
 	public GameObject choicePanel, mitigationPanel, summonAttackPanel;
 
-	public GameObject gameOverCanvas;
+	public GameObject gameOverCanvas, gameOverText, resetButton;
 
 	public void displayChoicePanel()
 	{
@@ -42,6 +42,15 @@ public class UIManager : MonoBehaviour {
 	public void hideSummonAttackPanel()
 	{
 		summonAttackPanel.SetActive (false);
+	}
+
+	public void displayGameOverPanel()
+	{
+		gameOverCanvas.SetActive (true);
+	}
+	public void hideGameOverPanel()
+	{
+		gameOverCanvas.SetActive (false);
 	}
 
 
@@ -75,20 +84,32 @@ public class UIManager : MonoBehaviour {
 		//activate canvas, but not its contents
 		gameOverCanvas.SetActive(true);
 		//sets button as inactive, text as invisible
-		Color tmp = gameOverCanvas.GetComponent<Color>();
+		Color tmp = gameOverText.GetComponent<Text>().color;
 		tmp.a = 0.0f;
+
+		gameOverText.GetComponent<Text> ().color = tmp;//turn it off
+		ButtonManager.instance.deactivateResetButton ();
+
+		StartCoroutine(ScreenFadeIn(fadeTime));
+
 
 	}
 
-	IEnumerator ScreenFadeIn(int fadeTime)
+	IEnumerator ScreenFadeIn(float fadeTime)
 	{
 		float time = 0f;
 		while (time <= fadeTime)
 		{
 			//gets game over text and slowly make it fade in
-			return null;//TODO: finish this TODAY
+			time += Time.deltaTime/fadeTime;
+			Color c = gameOverText.GetComponent<Text>().color;
+			c.a = time;
+			gameOverText.GetComponent<Text> ().color = c;//update alpha
+			yield return new WaitForFixedUpdate ();//TODO: finish this TODAY
 		}
-		return null;
+		//when it reaches here, means button can be shown
+		ButtonManager.instance.Invoke("activateResetButton",0.5f);
+
 	}
 
 	void Awake()
@@ -99,6 +120,7 @@ public class UIManager : MonoBehaviour {
 		hideChoicePanel();
 		hideMitigationPanel ();
 		hideSummonAttackPanel ();
+		hideGameOverPanel ();
 	}
 
 	// Use this for initialization

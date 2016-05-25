@@ -22,18 +22,18 @@ public class FlowManager : MonoBehaviour {
 	{
 
 		//when it gets here, means player chose to mitigate, so wait for their input
-		Debug.Log("Started mitigation process");
+		//Debug.Log("Started mitigation process");
 		while (AceExorcistGame.instance.exorcistMitigating)
 		{
-			Debug.Log ("Waiting for cards to be chosen...");
+			//Debug.Log ("Waiting for cards to be chosen...");
 			if (cardsChosen)//exorcist chose cards to use for mitigation by clicking "Mitigate" button
 			{
 				//check for their validity
-				Debug.Log("Check for cards validity");
+				//Debug.Log("Check for cards validity");
 				//seems to break around here...
 				int finalDamageToExorcist = AceExorcistGame.instance.mitigateSummonerAttack (AceExorcistGame.instance.summonerHand.getToggledCards (),
 					AceExorcistGame.instance.exorcistHand.getToggledCards());
-				Debug.Log ("Let's see if cards are good...");
+				//Debug.Log ("Let's see if cards are good...");
 				//if cards aren't valid, get out of this while and wait for new input
 				if (finalDamageToExorcist == -1)
 				{

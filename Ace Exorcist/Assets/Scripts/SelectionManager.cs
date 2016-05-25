@@ -39,7 +39,6 @@ public class SelectionManager : MonoBehaviour {
 					}
 					else if (col.gameObject.transform.parent.tag == "SummonZone")//if it's a card in the summon zone, also mark it, regardless of whose turn it is
 					{
-						//TODO: eventually, will only work when exorcist is attacking summon zone, for now, just show card in description
 						if (AceExorcistGame.instance.canToggleSummonCards)
 						{
 							//if it's in this state, cards in the summon zone can be toggled

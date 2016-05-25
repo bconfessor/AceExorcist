@@ -6,8 +6,6 @@ public class MainGameLoop : MonoBehaviour
 	//This is the main file, since it has the main game loop. Every important comment or TODO must be placed here
 	//things here will be listed in the order which I believe is the best for a decent flow of construction of the mechanics 
 
-	//TODO: fix the click mechanic so that it clicks on a card and just on that(THINK I DID IT)
-	//TODO: FIX Sacrifice draw/heal text AND method(just tried to heal player and it didn't work)
 	//Next up: Toggling the cards up and down with a click(Done, easier than I thought)
 
 	//Next up: Enhance the UI, create a script just for it, display and update HP of exorcist and summoner in it(DONE)
@@ -24,7 +22,7 @@ public class MainGameLoop : MonoBehaviour
 	//Next up: Build animation for card destruction(DONE)
 	//Next up: Build deck-destruction mechanism from exorcist attack
 	//Next up: Build a coroutine to work for the exorcist attack's deck-destruction mechanism, destroying one card per second
-	//Next up: Make another button, this time to attacḱ the summon zone
+	//Next up: Make another button, this time to attacḱ the summon zone(DONE)
 
 	//Idea: divide turns into phases, like Yu-gi-oh(draw phase, action phase, end turn phase)
 

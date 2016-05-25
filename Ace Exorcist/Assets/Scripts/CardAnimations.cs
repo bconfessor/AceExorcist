@@ -3,7 +3,6 @@ using System.Collections;
 
 public class CardAnimations : MonoBehaviour {
 
-	//TODO:Fix card animation
 
 
 	SpriteRenderer spriteRenderer;
@@ -76,7 +75,7 @@ public class CardAnimations : MonoBehaviour {
 		StartCoroutine (FlipDown ());
 	}
 
-	IEnumerator FlipUp()//TODO: FIX
+	IEnumerator FlipUp()
 	{
 		float delay = 0.3f;
 		Hand currentHand;

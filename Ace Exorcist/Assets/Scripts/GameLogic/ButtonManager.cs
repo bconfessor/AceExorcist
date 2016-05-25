@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 
 public class ButtonManager : MonoBehaviour {
 
-	//TODO: Make Yes/No button to work with damage mitigation
 
 	public static ButtonManager instance;
 
@@ -85,7 +85,6 @@ public class ButtonManager : MonoBehaviour {
 
 	public void pressedConfirmSummonAttack()
 	{
-		//TODO: works just by checking if summon was successful
 		//can only attack ONE summon, if more than one is selected, complains
 		if (AceExorcistGame.instance.summonZone.getToggledCards ().Count != 1)
 		{
@@ -192,7 +191,7 @@ public class ButtonManager : MonoBehaviour {
 	public void pressedResetButton()
 	{
 		//TODO:resets game: resets all flags, decks and etc(easier to just reload scene?)
-
+		SceneManager.LoadScene("TestScene");
 	}
 
 	//========================================================== MITIGATION BUTTON METHODS ===============================================================
@@ -343,6 +342,16 @@ public class ButtonManager : MonoBehaviour {
 		mitigateButton.GetComponent<Button> ().interactable = false;
 		cancelMitigationButton.GetComponent<Button> ().interactable = false;
 	}
+
+	public void activateResetButton()
+	{
+		resetButton.SetActive (true);
+	}
+	public void deactivateResetButton()
+	{
+		resetButton.SetActive (false);
+	}
+
 
 	public void changeTexts()
 	{

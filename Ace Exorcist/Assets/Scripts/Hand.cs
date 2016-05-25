@@ -237,7 +237,7 @@ public class Hand : MonoBehaviour {
 	}
 
 
-	IEnumerator FlipUp()//TODO: FIX
+	IEnumerator FlipUp()
 	{
 		float delay = 0.2f;
 
@@ -286,8 +286,7 @@ public class Hand : MonoBehaviour {
 
 	public void displayCards()//shows the cards that exist
 	{
-		//TODO:When newest card is put in place, make it do the spinning animation
-
+		
 		int counter=0;//to move each card 
 		foreach(Transform t in transform)//gets all childs of the hand, i.e., the cards themselves
 		{
