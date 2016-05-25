@@ -14,12 +14,14 @@ public class Player_Turn : MonoBehaviour {
 	{
 
 		UIManager.instance.displayNewText ("It's the exorcist's turn.\nSelect the cards you want to use");
+		hand.flipHandUp ();
 		//Debug.Log("It's the exorcist's turn.");
 		//Debug.Log("Select the cards you want to use.");
 	}
 
 	void OnDisable()
 	{
+		hand.flipHandDown ();
 		endTurn ();
 	}
 
@@ -27,7 +29,7 @@ public class Player_Turn : MonoBehaviour {
 	void Start () {
 		//cardsChosen = new List<GameObject>();
 		hand = AceExorcistGame.instance.exorcistHand;
-
+		hand.flipHandUp ();
 	}
 
 

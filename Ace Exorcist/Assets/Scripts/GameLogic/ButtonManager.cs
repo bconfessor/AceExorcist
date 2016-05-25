@@ -9,8 +9,8 @@ public class ButtonManager : MonoBehaviour {
 
 	public static ButtonManager instance;
 
-	public GameObject summonButton, attackButton, drawButton, sacrificeButton, passButton, endTurnButton;//for now, they will be used for both players
-
+	public GameObject summonButton, attackButton, attackSummonZoneButton, drawButton, sacrificeButton, passButton, endTurnButton;//most will be used for both players
+	public GameObject resetButton;//restarts game
 
 	public GameObject yesButton, noButton, mitigateButton, cancelMitigationButton;//only show up when exorcist is given a choice about mitigating an attack
 
@@ -45,6 +45,13 @@ public class ButtonManager : MonoBehaviour {
 			return;
 		}
 
+		//if it's exorcist turn and there's a summon in the field, a direct attack is not possible
+		if (AceExorcistGame.instance.isExorcistTurn && AceExorcistGame.instance.summonZone.hand.Count > 0)
+		{
+			UIManager.instance.displayNewText ("Cannot do a direct attack; must attack summons first.");
+			return;
+		}
+
 		//gets toggled cards to check if they form a valid attack
 		if (AceExorcistGame.instance.isExorcistTurn)
 		{
@@ -55,6 +62,57 @@ public class ButtonManager : MonoBehaviour {
 		{
 			AceExorcistGame.instance.callSummonerAttack ();
 		}
+
+	}
+
+	public void pressedAttackSummonZoneButton()
+	{
+		//first, player must choose a hand; if hand is empty/too small or not a flush, does nothing
+		if (AceExorcistGame.instance.exorcistHand.getToggledCards ().Count < 2 || !AceExorcistGame.instance.handIsFlush(AceExorcistGame.instance.exorcistHand.getToggledCards()))
+		{
+			UIManager.instance.displayNewText ("Hand is not appropriate for attacking a summoned monster! Choose a proper hand before attacking.");
+			return;
+		}
+		else
+		{
+			//hand is good enough for an attack(now to choose the card to be attacked)
+			AceExorcistGame.instance.canToggleSummonCards=true;
+			deactivateAllButtons();//makes the summonpanel appear as well
+			UIManager.instance.displaySummonAttackPanel();
+
+		}
+	}
+
+	public void pressedConfirmSummonAttack()
+	{
+		//TODO: works just by checking if summon was successful
+		//can only attack ONE summon, if more than one is selected, complains
+		if (AceExorcistGame.instance.summonZone.getToggledCards ().Count != 1)
+		{
+			UIManager.instance.displayNewText ("Can only attack one summon card, invalid choice.");
+			return;
+		}
+		if (AceExorcistGame.instance.exorcistAttackedSummonCard (AceExorcistGame.instance.exorcistHand.getToggledCards (), AceExorcistGame.instance.summonZone.getToggledCards () [0]))
+		{
+			//attack was successfull, restart buttons
+			AceExorcistGame.instance.canToggleSummonCards = false;
+
+			UIManager.instance.hideSummonAttackPanel ();
+			actionCompleted ();
+
+
+		}
+
+
+	}
+
+	public void pressedCancelSummonAttackButton()
+	{
+		//cancels it, makes buttons work again, makes summon panel dissapear
+		//cancel has the same effect as drawing card, button online-wise
+		UIManager.instance.hideSummonAttackPanel();
+		cardDrawn ();
+		AceExorcistGame.instance.canToggleSummonCards = false;
 
 	}
 
@@ -129,6 +187,11 @@ public class ButtonManager : MonoBehaviour {
 		AceExorcistGame.instance.currentTurnEnded();
 		//end turn = beginning of the other's turn
 		turnStarted();
+	}
+
+	public void pressedResetButton()
+	{
+		//TODO:resets game: resets all flags, decks and etc(easier to just reload scene?)
 
 	}
 
@@ -186,19 +249,24 @@ public class ButtonManager : MonoBehaviour {
 
 	public void turnStarted()
 	{
-		//if it's the exorcist's turn, summon button shouldn't show up
+		//if it's the exorcist's turn, summon button shouldn't show up and attack summon zone should
 		if (AceExorcistGame.instance.isExorcistTurn)
 		{
 			summonButton.SetActive (false);
+			attackSummonZoneButton.SetActive (true);
 		}
 		else
+		{
 			summonButton.SetActive (true);
-		
+			attackSummonZoneButton.SetActive (false);
+		}
+
 		//when a turn starts, only the draw button is enabled
 		deactivateAllButtons();
 		drawButton.GetComponent<Button> ().interactable = true;
 		//also, once it starts, change buttons names, depending on current player
 		changeTexts();
+		AceExorcistGame.instance.cannotClickCards ();//only after card is drawn
 	}
 
 	public void cardDrawn()
@@ -208,6 +276,8 @@ public class ButtonManager : MonoBehaviour {
 		endTurnButton.GetComponent<Button> ().interactable = false;
 		drawButton.GetComponent<Button> ().interactable = false;
 
+		//now player can select cards
+		AceExorcistGame.instance.canClickCards();
 
 	}
 
@@ -222,10 +292,12 @@ public class ButtonManager : MonoBehaviour {
 	{
 		drawButton.GetComponent<Button>().interactable=false;
 		attackButton.GetComponent<Button> ().interactable = false;
+		attackSummonZoneButton.GetComponent<Button> ().interactable = false;
 		passButton.GetComponent<Button> ().interactable = false;
 		sacrificeButton.GetComponent<Button> ().interactable = false;
 		summonButton.GetComponent<Button> ().interactable = false;
 		endTurnButton.GetComponent<Button> ().interactable = false;
+
 
 
 	}
@@ -243,6 +315,9 @@ public class ButtonManager : MonoBehaviour {
 			//activate summon button as well
 			summonButton.GetComponent<Button>().interactable=true;
 		}
+		else//is exorcist's turn, activates summon zone attack button
+			attackSummonZoneButton.GetComponent<Button> ().interactable = true;
+		
 	}
 
 	public void activateChoiceButtons()
@@ -275,10 +350,12 @@ public class ButtonManager : MonoBehaviour {
 		if (AceExorcistGame.instance.isExorcistTurn)
 		{
 			sacrificeButton.GetComponentInChildren<Text> ().text = "Sacrifice Heal";
+			attackButton.GetComponentInChildren<Text>().text = "Direct Attack";
 		}
 		else
 		{
 			sacrificeButton.GetComponentInChildren<Text> ().text = "Sacrifice Draw";
+			attackButton.GetComponentInChildren<Text> ().text = "Attack";
 		}
 	}
 

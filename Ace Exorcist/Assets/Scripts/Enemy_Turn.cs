@@ -13,12 +13,13 @@ public class Enemy_Turn : MonoBehaviour {
 	void OnEnable()
 	{
 		UIManager.instance.displayNewText ("It's the summoner's turn.\nSelect the cards you want to use");
-
+		hand.flipHandUp ();
 		//Debug.Log ("It's the Summoner's turn");
 		//Debug.Log("Select the cards you want to use.");
 	}
 	void OnDisable()
 	{
+		hand.flipHandDown ();
 		endTurn ();
 	}
 

@@ -44,6 +44,9 @@ public class AceExorcistGame : MonoBehaviour
 	public bool summonerAlive = true;
 	public bool summonerWins = false;
 	public bool exorcistWins = false;
+	public bool cardsCanBeClicked = true;
+	public bool canToggleSummonCards = false;
+
 
 
 	void Awake()
@@ -70,6 +73,16 @@ public class AceExorcistGame : MonoBehaviour
 
 	}
 
+	//to control when cards can be clicked or not
+
+	public void canClickCards()
+	{
+		cardsCanBeClicked=true;
+	}
+	public void cannotClickCards()
+	{
+		cardsCanBeClicked = false;
+	}
 
 	public void ResetGame()
 	{
@@ -80,6 +93,7 @@ public class AceExorcistGame : MonoBehaviour
 		summonerAlive = true;
 		summonerWins = false;
 		exorcistWins = false;
+		cardsCanBeClicked = true;
 
 		//how to properly reset hand...?(like this I guess)
 		//TODO
@@ -186,13 +200,6 @@ public class AceExorcistGame : MonoBehaviour
 			ButtonManager.instance.deactivateAllButtons();
 			UIManager.instance.displayChoicePanel ();
 
-			//play summoner attack sound; if less than three cards, counts as light attack; if three or more, heavy attack
-			if (summonerHand.getToggledCards ().Count >= 3)//heavy attack
-			{
-				SoundManager.instance.playHeavyAttackSound ("summoner");
-			} 
-			else
-				SoundManager.instance.playLightAttackSound ("summoner");
 
 			UIManager.instance.displayNewText ("Summoner charged an attack! Will the exorcist try to mitigate the damage?");
 			//if player says "yes", then it starts the coroutine;to be called inside yes button
@@ -349,11 +356,13 @@ public class AceExorcistGame : MonoBehaviour
 		else//valid attack
 		{
 			UIManager.instance.displayNewText ("Exorcist Attacked!");
+			StartCoroutine(FlowManager.instance.destroySummonerCards(damageToSummoner));
 			//for now, take damage directly to summoner health
+			/*
 			currentSummonerHP-=exorcistHand.getCardsPower();
 			if (currentSummonerHP < 0)
 				currentSummonerHP = 0;
-
+			*/
 			//plays sound for attack; if less than 3 cards were used, light attack;if used more than two cards, it is considered a heavy attack
 			if (exorcistHand.getToggledCards ().Count >= 3)
 				SoundManager.instance.playHeavyAttackSound ("exorcist");
@@ -361,12 +370,6 @@ public class AceExorcistGame : MonoBehaviour
 				SoundManager.instance.playLightAttackSound ("exorcist");
 
 			exorcistHand.removeToggledCards ();//after attack, must remove used cards
-			UIManager.instance.updateHealthUI ();
-			AceExorcistGame.instance.checkExorcistVictory ();
-
-
-
-			ButtonManager.instance.actionCompleted ();
 		}
 
 	}
@@ -405,7 +408,7 @@ public class AceExorcistGame : MonoBehaviour
 	}
 
 
-	public void exorcistAttackedSummonCard(List<GameObject> exorcistAttack, GameObject summonAttacked)
+	public bool exorcistAttackedSummonCard(List<GameObject> exorcistAttack, GameObject summonAttacked)
 	{
 		//if there is a summon card in the summon zone, this method can be called
 		//TODO
@@ -423,16 +426,21 @@ public class AceExorcistGame : MonoBehaviour
 			{
 				//summoner takes damage equal to the summon card that was destroyed
 				summonerDamaged((int)summonAttacked.GetComponent<CardModel>().cardValue);
+				UIManager.instance.displayNewText ("Exorcist destroyed the " + summonAttacked.GetComponent<CardModel> ().cardValue
+					+ " of " + summonAttacked.GetComponent<CardModel> ().cardSuit+"!");
 				//destroy summon card, destroy hand used by exorcist
 				summonZone.removeCard(summonAttacked);
 				exorcistHand.removeToggledCards ();
+				return true;
 			}
 			else//hand is not strong enough
 			{
 				UIManager.instance.displayNewText ("Chosen hand is not powerful enough to destroy the summon!");
+				return false;
 			}
 
 		}
+		return false;
 
 	}
 

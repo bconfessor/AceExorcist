@@ -42,6 +42,25 @@ public class  DeckScript : MonoBehaviour {
 
 	}
 
+	public bool canDestroyNextCardInDeck(ref int damage)
+	{
+		//looks at next card on top of the summoner's deck;if it's equal to or weaker than the damage, it gets destroyed, and damage gets lowered
+		if ((int)deck.GetTopCard ().cardValue <= damage)
+		{
+			//instantiate it on top of deck, then take card out(with destruction animation)
+			GameObject card = Instantiate (CardGO, this.gameObject.transform.position, Quaternion.identity) as GameObject;
+			card.transform.parent = gameObject.transform;//makes it a child of the deck
+			card.GetComponent<CardModel> ().loadCard (deck.TakeCard ());//created it and put it on top of deck
+			cardDescriptionScript.instance.changeCardFace(card.GetComponent<CardModel>().cardFace);//shows current card gotten from deck in the card description area
+			card.GetComponent<CardModel>().turnCardDown();
+			StartCoroutine (card.GetComponent<CardAnimations> ().FlipUpAndDelete ());
+			damage -= (int)card.GetComponent<CardModel> ().cardValue;//decreases damage everytime a card is destroyed
+
+			return true;
+		} 
+		else
+			return false;
+	}
 
 
 	// Use this for initialization

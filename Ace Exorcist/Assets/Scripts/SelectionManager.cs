@@ -2,7 +2,7 @@
 using System.Collections;
 using Cards.Collections;
 
-public class ClickTest : MonoBehaviour {
+public class SelectionManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
@@ -25,7 +25,7 @@ public class ClickTest : MonoBehaviour {
 			Collider2D col =Physics2D.OverlapPoint(cameraPoint);
 			if (col != null)
 			{
-				if (col.gameObject.tag == "card")
+				if (col.gameObject.tag == "card" && AceExorcistGame.instance.cardsCanBeClicked)
 				{
 
 					//when clicked, card must be (un)selected(Only if it's the current player's card, or if exorcist is mitigating damage)
@@ -40,6 +40,12 @@ public class ClickTest : MonoBehaviour {
 					else if (col.gameObject.transform.parent.tag == "SummonZone")//if it's a card in the summon zone, also mark it, regardless of whose turn it is
 					{
 						//TODO: eventually, will only work when exorcist is attacking summon zone, for now, just show card in description
+						if (AceExorcistGame.instance.canToggleSummonCards)
+						{
+							//if it's in this state, cards in the summon zone can be toggled
+							col.GetComponent<CardModel>().toggleCard();
+						}
+
 						updateDescriptionCard(col.GetComponent<CardModel>().cardFace);
 					}
 				}

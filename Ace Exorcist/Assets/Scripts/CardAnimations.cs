@@ -38,6 +38,13 @@ public class CardAnimations : MonoBehaviour {
 		StartCoroutine (Blink ());
 	}
 
+	public IEnumerator FlipUpAndDelete()
+	{
+		//after instantiating, does a flip and soon after, deletes it
+		StartCoroutine(Flip(gameObject.GetComponent<CardModel>().cardBack, gameObject.GetComponent<CardModel>().cardFace));
+		yield return new WaitForSeconds (0.5f);
+		StartCoroutine (Blink ());
+	}
 
 	IEnumerator Blink()
 	{
@@ -57,8 +64,60 @@ public class CardAnimations : MonoBehaviour {
 		DestroyImmediate(gameObject);
 	}
 
+
+	//methods that call flip, to be used with invoke in hand.cs
+
+	public void FlipHandUp()
+	{
+		StartCoroutine (FlipUp ());
+	}
+	public void FlipHandDown()
+	{
+		StartCoroutine (FlipDown ());
+	}
+
+	IEnumerator FlipUp()//TODO: FIX
+	{
+		float delay = 0.3f;
+		Hand currentHand;
+		if (AceExorcistGame.instance.isExorcistTurn)
+			currentHand = AceExorcistGame.instance.exorcistHand;
+		else
+			currentHand = AceExorcistGame.instance.summonerHand;
+
+		for(int i = 0; i <currentHand.hand.Count;i++)
+		{
+			//flips each card back up
+			currentHand.hand[i].GetComponent<CardAnimations>().StartCoroutine(Flip(currentHand.hand[i].GetComponent<CardModel>().cardBack, currentHand.hand[i].GetComponent<CardModel>().cardFace));
+			yield return new WaitForSeconds (delay);
+		}
+	}
+
+
+	IEnumerator FlipDown()
+	{
+		float delay = 0.3f;
+		Hand currentHand;
+		if (AceExorcistGame.instance.isExorcistTurn)
+			currentHand = AceExorcistGame.instance.exorcistHand;
+		else
+			currentHand = AceExorcistGame.instance.summonerHand;
+
+		for(int i = 0; i <currentHand.hand.Count;i++)
+		{
+			//flips each card back up
+			currentHand.hand[i].GetComponent<CardAnimations>().StartCoroutine(Flip(currentHand.hand[i].GetComponent<CardModel>().cardFace, currentHand.hand[i].GetComponent<CardModel>().cardBack));
+			yield return new WaitForSeconds (delay);
+		}
+	}
+
+
+
+
+
+
 	//flips the card, doesn't modify the card index
-	IEnumerator Flip(Sprite startImg, Sprite endImg)
+	public IEnumerator Flip(Sprite startImg, Sprite endImg)
 	{
 		spriteRenderer.sprite = startImg;
 		float time = 0f;

@@ -11,10 +11,12 @@ public class FlowManager : MonoBehaviour {
 
 	public static FlowManager instance;
 
+	//flags to control whiles inside coroutines
 	public bool answerChosen = false;//chose whether or not to mitigate
 	public bool cardsChosen = false;//chose cards to do the mitigation
-	public bool validHandChosen = false;
 
+	public bool summonAttackChosen = false;//true when player chooses a summon to attack
+	public bool canceledSummonAttack = false;
 
 	IEnumerator doExorcistMitigation()
 	{
@@ -51,10 +53,25 @@ public class FlowManager : MonoBehaviour {
 					//take out toggled cards of both players, damage exorcist with what's left of damage
 					AceExorcistGame.instance.exorcistDamaged(finalDamageToExorcist);
 
-
+					//text changes depending on how much damage is mitigated
+					if (finalDamageToExorcist == 0)
+					{
+						UIManager.instance.displayNewText ("Exorcist completely blocked the attack!");
+					}
+					else
+					{
+						//took SOME damage
+						UIManager.instance.displayNewText("Exorcist partially blocked the attack! Took "+finalDamageToExorcist+ " damage!");
+					}
 					//TODO: if exorcist does mitigate damage, find a sound for that as well
 
-
+					//play summoner attack sound; if less than three cards, counts as light attack; if three or more, heavy attack
+					if (AceExorcistGame.instance.summonerHand.getToggledCards ().Count >= 3)//heavy attack
+					{
+						SoundManager.instance.playHeavyAttackSound ("summoner");
+					} 
+					else
+						SoundManager.instance.playLightAttackSound ("summoner");
 
 					//take toggled cards from both
 					AceExorcistGame.instance.summonerHand.removeToggledCards();
@@ -75,33 +92,50 @@ public class FlowManager : MonoBehaviour {
 			}
 		}
 
-		/*
-		if (answerChosen)//means player chose to mitigate, do mitigation
-		{
-			UIManager.instance.displayNewText ("Choose the cards you will use to mitigate the damage");
-			//call mitigation method with chosen cards 
-			while (!validHandChosen)
-			{
-				if (cardsChosen)
-				{
-					//if cards were chosen, try for a mitigation
-
-				}
-
-				else
-				{
-					cardsChosen = false;//
-					//holds the coroutine here while player chooses cards
-					yield return null;
-				}
-			}
-		}*/
 
 		//in the end, reset the flags so they can be reused in the next turn
 		answerChosen = false;
 		cardsChosen = false;
 
 
+	}
+
+	public IEnumerator destroySummonerCards(int totalDamageToBeDone)
+	{
+
+
+		//if exorcist chooses to attack summoner deck with a valid hand, call this coroutine, which locks every button while it runs
+		ButtonManager.instance.deactivateAllButtons();//so nothing can be done during the animation
+		int damage = totalDamageToBeDone;
+		int tmp = damage;//to know how much damage to take each round
+		//every x seconds, checks if the next card can be destroyed, and while it can, keep doing it
+		while (AceExorcistGame.instance.summonerDeckGO.GetComponent<DeckScript> ().canDestroyNextCardInDeck (ref damage))
+		{
+			//destroyed another card, must damage enemy health as well
+
+
+			AceExorcistGame.instance.summonerDamaged(tmp-damage);//gets the difference, which is the damage gotten from this card
+			tmp = damage;
+
+			UIManager.instance.updateHealthUI ();
+			UIManager.instance.updateCardsLeftUI ();
+			AceExorcistGame.instance.checkExorcistVictory ();
+
+			yield return new WaitForSeconds(1.2f);
+		}
+
+		//if the flush wasn't even able to damage one card, the totalDamageToBeDone and damage should still be the same; give a message to exorcist
+		if (totalDamageToBeDone == damage)
+		{
+			UIManager.instance.displayNewText ("Couldn't damage summoner at all!");
+		}
+
+		//when it gets here, means it destroyed as many cards as it could, so just give info to exorcist
+		else
+		{
+			UIManager.instance.displayNewText ("Exorcist damaged summoner for " + (totalDamageToBeDone - damage) + " damage!");
+		}
+		ButtonManager.instance.actionCompleted ();
 	}
 
 

@@ -27,11 +27,15 @@ public class CardModel : MonoBehaviour {
 	public bool faceUp;//stores if the card is face up, i.e., if it's yours
 	public bool toggled = false;//goes true if card was clicked and toggled
 
+	void Awake()
+	{
+		spriteRenderer=gameObject.GetComponent<SpriteRenderer>();
+	}
+
 	// Use this for initialization
 	void Start () {
 		//cardFaces = Resources.Load<Sprite>("Sprites/cardSheet");
 		faceUp=false;//when the card is created, it's face down, just to be safe
-		spriteRenderer=gameObject.GetComponent<SpriteRenderer>();
 	}
 
 	public void loadCard(Card c)//generates the card sprite based on its value and suit
@@ -41,6 +45,15 @@ public class CardModel : MonoBehaviour {
 		cardSuit = c.Suit;
 		cardValue = c.cardValue;
 		faceUp = true;//if card was loaded, it went to player's hand, so it's face up
+	}
+
+	public void turnCardUp()
+	{
+		spriteRenderer.sprite = cardFace;
+	}
+	public void turnCardDown()
+	{
+		spriteRenderer.sprite = cardBack;
 	}
 
 

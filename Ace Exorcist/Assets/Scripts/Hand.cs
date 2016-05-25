@@ -215,6 +215,62 @@ public class Hand : MonoBehaviour {
 
 	//========================================= status methods ==========================================================
 
+
+	public void flipHandUp()
+	{
+		//flips up all cards in hand, if there are cards in hand
+		if (hand.Count > 0)
+		{
+			StopCoroutine(FlipUp());
+			StartCoroutine(FlipUp());
+		}
+	}
+
+	public void flipHandDown()
+	{
+		//flips down all cards in hand, if there are cards in hand
+		if (hand.Count > 0)
+		{
+			StopCoroutine (FlipDown ());
+			StartCoroutine (FlipDown ());
+		}
+	}
+
+
+	IEnumerator FlipUp()//TODO: FIX
+	{
+		float delay = 0.2f;
+
+		for(int i = 0; i <hand.Count;i++)
+		{
+			//flips each card back up
+			CardAnimations cardAnim = hand[i].GetComponent<CardAnimations>();
+			cardAnim.StartCoroutine(cardAnim.Flip(hand[i].GetComponent<CardModel>().cardBack, hand[i].GetComponent<CardModel>().cardFace));
+			yield return new WaitForSeconds (delay);
+		}
+	}
+
+
+	IEnumerator FlipDown()
+	{
+		float delay = 0.2f;
+
+		for(int i = 0; i <hand.Count;i++)
+		{
+			//flips each card back up
+			CardAnimations cardAnim = hand[i].GetComponent<CardAnimations>();
+			cardAnim.StartCoroutine(cardAnim.Flip(hand[i].GetComponent<CardModel>().cardFace, hand[i].GetComponent<CardModel>().cardBack));
+			yield return new WaitForSeconds (delay);
+		}
+	}
+
+
+
+
+
+
+
+
 	public int getHandCount()//returns the amount of cards the hand currently has
 	{
 		return currentCardNumber;

@@ -11,8 +11,9 @@ public class UIManager : MonoBehaviour {
 
 
 	//game objects for the mitigation panels, need to be turned on/off depending on what is happening
-	public GameObject choicePanel, mitigationPanel;
+	public GameObject choicePanel, mitigationPanel, summonAttackPanel;
 
+	public GameObject gameOverCanvas;
 
 	public void displayChoicePanel()
 	{
@@ -31,6 +32,16 @@ public class UIManager : MonoBehaviour {
 	public void hideMitigationPanel()
 	{
 		mitigationPanel.SetActive (false);
+	}
+
+	public void displaySummonAttackPanel()
+	{
+		summonAttackPanel.SetActive (true);
+
+	}
+	public void hideSummonAttackPanel()
+	{
+		summonAttackPanel.SetActive (false);
 	}
 
 
@@ -57,13 +68,37 @@ public class UIManager : MonoBehaviour {
 		summonerDeck.text = "Cards left: " + AceExorcistGame.instance.summonerDeckGO.GetComponent<DeckScript> ().deck.getRemainingCards();
 	}
 
+	public void gameOverScreenFadesIn()
+	{
+		float fadeTime = 3.0f;
+
+		//activate canvas, but not its contents
+		gameOverCanvas.SetActive(true);
+		//sets button as inactive, text as invisible
+		Color tmp = gameOverCanvas.GetComponent<Color>();
+		tmp.a = 0.0f;
+
+	}
+
+	IEnumerator ScreenFadeIn(int fadeTime)
+	{
+		float time = 0f;
+		while (time <= fadeTime)
+		{
+			//gets game over text and slowly make it fade in
+			return null;//TODO: finish this TODAY
+		}
+		return null;
+	}
+
 	void Awake()
 	{
 		textBoxText = textGO.GetComponent<Text> ();
 
-		//mitigation and choice panels start hidden
+		//panels start hidden
 		hideChoicePanel();
 		hideMitigationPanel ();
+		hideSummonAttackPanel ();
 	}
 
 	// Use this for initialization

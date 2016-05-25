@@ -21,10 +21,10 @@ public class MainGameLoop : MonoBehaviour
 	//Next up: Make more text for mitigation process
 	//Next up: Enhance UI, put number of cards left in deck(DONE)
 	//Next up: Enhance Cards.collections script, make method to look at next card from deck but not take it out(DONE)
-	//Next up: Build animation for card destruction
+	//Next up: Build animation for card destruction(DONE)
 	//Next up: Build deck-destruction mechanism from exorcist attack
 	//Next up: Build a coroutine to work for the exorcist attack's deck-destruction mechanism, destroying one card per second
-
+	//Next up: Make another button, this time to attacḱ the summon zone
 
 	//Idea: divide turns into phases, like Yu-gi-oh(draw phase, action phase, end turn phase)
 
