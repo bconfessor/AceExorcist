@@ -23,6 +23,8 @@ public class MainGameLoop : MonoBehaviour
 	//Next up: Build deck-destruction mechanism from exorcist attack
 	//Next up: Build a coroutine to work for the exorcist attack's deck-destruction mechanism, destroying one card per second
 	//Next up: Make another button, this time to attacḱ the summon zone(DONE)
+	//Next up: Make main menu scene with Logo, play button, instructions button, Credits button and Close button(?)
+
 
 	//Idea: divide turns into phases, like Yu-gi-oh(draw phase, action phase, end turn phase)
 
