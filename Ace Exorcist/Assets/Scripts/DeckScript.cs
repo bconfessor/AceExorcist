@@ -39,6 +39,13 @@ public class  DeckScript : MonoBehaviour {
 		}
 
 		playerHand.displayCards ();
+		//since it always starts with the summoner, flip cards down if it's the exorcist
+		if (playerDeck)
+		{
+			playerHand.flipHandDownImmediately ();
+		} 
+		else
+			playerHand.flipHandUpImmediately ();
 
 	}
 

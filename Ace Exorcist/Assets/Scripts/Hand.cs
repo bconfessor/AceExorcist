@@ -236,6 +236,54 @@ public class Hand : MonoBehaviour {
 		}
 	}
 
+	public void flipHandUpImmediately()
+	{
+		for(int i = 0; i <hand.Count;i++)
+		{
+			//flips each card back up
+			CardAnimations cardAnim = hand[i].GetComponent<CardAnimations>();
+			cardAnim.StartCoroutine(cardAnim.Flip(hand[i].GetComponent<CardModel>().cardBack, hand[i].GetComponent<CardModel>().cardFace));
+		}
+	}
+
+	public void flipHandDownImmediately()
+	{
+		for(int i = 0; i <hand.Count;i++)
+		{
+			//flips each card back down
+			CardAnimations cardAnim = hand[i].GetComponent<CardAnimations>();
+			cardAnim.StartCoroutine(cardAnim.Flip(hand[i].GetComponent<CardModel>().cardFace, hand[i].GetComponent<CardModel>().cardBack));
+		}
+	}
+
+
+	public void FlipDownUntoggledCards()
+	{
+		//pretty much what it says on the name
+		for(int i = 0; i <hand.Count;i++)
+		{
+			//flips each untoggled card back down
+			if (!hand [i].GetComponent<CardModel> ().toggled)
+			{
+				CardAnimations cardAnim = hand [i].GetComponent<CardAnimations> ();
+				cardAnim.StartCoroutine (cardAnim.Flip (hand [i].GetComponent<CardModel> ().cardFace, hand [i].GetComponent<CardModel> ().cardBack));
+			}
+		}
+	}
+
+	public void FlipUpUntoggledCards()
+	{
+		//pretty much what it says on the name
+		for(int i = 0; i <hand.Count;i++)
+		{
+			//flips each untoggled card back down
+			if (!hand [i].GetComponent<CardModel> ().toggled)
+			{
+				CardAnimations cardAnim = hand [i].GetComponent<CardAnimations> ();
+				cardAnim.StartCoroutine (cardAnim.Flip (hand [i].GetComponent<CardModel> ().cardBack, hand [i].GetComponent<CardModel> ().cardFace));
+			}
+		}
+	}
 
 	IEnumerator FlipUp()
 	{
@@ -257,7 +305,7 @@ public class Hand : MonoBehaviour {
 
 		for(int i = 0; i <hand.Count;i++)
 		{
-			//flips each card back up
+			//flips each card back down
 			CardAnimations cardAnim = hand[i].GetComponent<CardAnimations>();
 			cardAnim.StartCoroutine(cardAnim.Flip(hand[i].GetComponent<CardModel>().cardFace, hand[i].GetComponent<CardModel>().cardBack));
 			yield return new WaitForSeconds (delay);

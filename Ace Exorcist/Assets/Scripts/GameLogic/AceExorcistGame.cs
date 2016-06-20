@@ -335,9 +335,11 @@ public class AceExorcistGame : MonoBehaviour
 		//is called if summoner wins the match
 		//TODO
 		summonerWins = true;
+		//deactivate all other buttons so game can't continue
+		ButtonManager.instance.deactivateAllButtons();
 		SoundManager.instance.playVictorySound("summoner");
 		SoundManager.instance.Invoke("playGameOverSound",2.2f);
-		UIManager.instance.Invoke ("gameOverScreenFadesIn", 2.7f);
+		UIManager.instance.Invoke ("endScreenFadesIn", 2.7f);
 	}
 
 
@@ -640,6 +642,7 @@ public class AceExorcistGame : MonoBehaviour
 		if (summonerDeckGO.GetComponent<DeckScript> ().deck.getRemainingCards() <= 0 || currentSummonerHP <= 0)
 		{
 			exorcistWon ();
+			Debug.Log ("exorcist won!");
 		}
 
 	}
@@ -650,74 +653,8 @@ public class AceExorcistGame : MonoBehaviour
 		//TODO
 		exorcistWins = true;
 		SoundManager.instance.playVictorySound("exorcist");
+		UIManager.instance.Invoke ("endScreenFadesIn", 0.7f);
+		ButtonManager.instance.deactivateAllButtons ();
 	}
-
-	/* 
-
-    
-    public bool CheckVictorySummoner()
-    {
-        if ((SummonZone.hand.Count == 3) || (ExorcistHP <= 0))
-            return true;
-        else return false;
-        //if 3 cards in summon zone or exorcist HP <= 0, win
-    }
-
-    public bool CheckVictoryExorcist()
-    {
-        if (SummonerHP <= 0)
-            return true;
-        else return false;
-        //if summoner HP <= 0, win
-    }
-
-    public void passTurn()
-    {
-        isExorcistTurn = !isExorcistTurn;
-        //draw card for current player
-        //should be PlayerLibrary.DrawCard(PlayerHand). Or something like that
-
-        //CheckVictoryExorcist();
-        //CheckVictorySummoner();
-        //Check victory conditions
-    }
-
-     public void validatePlay(List<Card> CardsPlayed)
-    {
-        if (isExorcistTurn)
-        { int ExorcistAttack=1; //defaulted
-            // int ExorcistHeal = 1; //defaulted
-
-            foreach (Card theCard in CardsPlayed)
-
-                if (theCard.Suit != CardsPlayed[0].Suit) //exorcist flush = attack
-                    ExorcistAttack = ExorcistAttack * 0; //no flush no attack
-
-                else if ((CardsPlayed.Count == 2) && (CardsPlayed[0].cardValue == CardsPlayed[1].cardValue)) //pair
-                    doExorcistHeal(CardsPlayed); //healed if pair
-
-                    if (ExorcistAttack==1) doExorcistAttack(CardsPlayed) ; //flush => attack
-
-                    //ADD MITIGATE CODE
-        }
-        else //summoner
-        {
-            //checking if summoning
-            foreach (Card theCard in CardsPlayed)
-
-                if ((CardsPlayed.Count == 1) && (( (int)CardsPlayed[0].cardValue > 7) || ( (int)CardsPlayed[0].cardValue == 1))) //face cards 
-                    doSummonerPlaySummon(CardsPlayed[0]); //ONE face card played = summon
-
-                else if ((CardsPlayed.Count == 2) && ( CardsPlayed[0].cardValue == CardsPlayed[1].cardValue)) //pair
-                    doSummonerDraw(CardsPlayed); //pair => summoner draws
-
-                else doSummonerAttack(CardsPlayed);
-            //REMEMBER TO CHECK IF RUN
-                
-            //ADD MITIGATE CODE
-        }
-    }
-
-
-	*/
+		
 }

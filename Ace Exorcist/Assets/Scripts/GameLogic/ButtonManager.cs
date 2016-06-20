@@ -10,7 +10,7 @@ public class ButtonManager : MonoBehaviour {
 	public static ButtonManager instance;
 
 	public GameObject summonButton, attackButton, attackSummonZoneButton, drawButton, sacrificeButton, passButton, endTurnButton;//most will be used for both players
-	public GameObject resetButton;//restarts game
+	public GameObject resetButton, mainMenuButton;//restarts game, goes back to main menu
 
 	public GameObject yesButton, noButton, mitigateButton, cancelMitigationButton;//only show up when exorcist is given a choice about mitigating an attack
 
@@ -190,9 +190,17 @@ public class ButtonManager : MonoBehaviour {
 
 	public void pressedResetButton()
 	{
-		//TODO:resets game: resets all flags, decks and etc(easier to just reload scene?)
+		//TODO:resets game: resets all flags, decks and etc(easier to just reload scene?Yes. Yes it is)(DONE)
 		SceneManager.LoadScene("TestScene");
 	}
+
+	public void pressedMainMenuButton()
+	{
+		//goes back to main menu
+		SceneManager.LoadScene("MainMenu");
+
+	}
+
 
 	//========================================================== MITIGATION BUTTON METHODS ===============================================================
 
@@ -202,6 +210,10 @@ public class ButtonManager : MonoBehaviour {
 		//allow exorcist to choose cards to mitigate, change yes/no panel to mitigate/cancel 
 		UIManager.instance.hideChoicePanel();
 		UIManager.instance.displayMitigationPanel ();
+
+		//turns exorcists cards up, and flips down the untoggled summoner cards(exorcist needs to only see the cards attacking them)
+		AceExorcistGame.instance.summonerHand.FlipDownUntoggledCards();
+		AceExorcistGame.instance.exorcistHand.FlipUpUntoggledCards ();//which would be all
 
 		//turns on mitigation state so exorcist cards can be toggled
 		AceExorcistGame.instance.exorcistMitigating=true;
@@ -350,6 +362,15 @@ public class ButtonManager : MonoBehaviour {
 	public void deactivateResetButton()
 	{
 		resetButton.SetActive (false);
+	}
+	public void activateMainMenuButton()
+	{
+		mainMenuButton.SetActive (true);
+	}
+
+	public void deactivateMainMenuButton()
+	{
+		mainMenuButton.SetActive (false);
 	}
 
 

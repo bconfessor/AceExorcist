@@ -13,7 +13,7 @@ public class UIManager : MonoBehaviour {
 	//game objects for the mitigation panels, need to be turned on/off depending on what is happening
 	public GameObject choicePanel, mitigationPanel, summonAttackPanel;
 
-	public GameObject gameOverCanvas, gameOverText, resetButton;
+	public GameObject endMatchCanvas, gameOverText, victoryText, resetButton;
 
 	public void displayChoicePanel()
 	{
@@ -46,11 +46,11 @@ public class UIManager : MonoBehaviour {
 
 	public void displayGameOverPanel()
 	{
-		gameOverCanvas.SetActive (true);
+		endMatchCanvas.SetActive (true);
 	}
 	public void hideGameOverPanel()
 	{
-		gameOverCanvas.SetActive (false);
+		endMatchCanvas.SetActive (false);
 	}
 
 
@@ -77,38 +77,52 @@ public class UIManager : MonoBehaviour {
 		summonerDeck.text = "Cards left: " + AceExorcistGame.instance.summonerDeckGO.GetComponent<DeckScript> ().deck.getRemainingCards();
 	}
 
-	public void gameOverScreenFadesIn()
+	public void endScreenFadesIn()
 	{
 		float fadeTime = 3.0f;
 
 		//activate canvas, but not its contents
-		gameOverCanvas.SetActive(true);
-		//sets button as inactive, text as invisible
+		endMatchCanvas.SetActive(true);
+		//sets button as inactive, texts as invisible
 		Color tmp = gameOverText.GetComponent<Text>().color;
 		tmp.a = 0.0f;
 
 		gameOverText.GetComponent<Text> ().color = tmp;//turn it off
+		victoryText.GetComponent<Text>().color = tmp; //same for this one
 		ButtonManager.instance.deactivateResetButton ();
-
+		ButtonManager.instance.deactivateMainMenuButton ();
 		StartCoroutine(ScreenFadeIn(fadeTime));
 
 
 	}
 
+
+
+
 	IEnumerator ScreenFadeIn(float fadeTime)
 	{
 		float time = 0f;
+
+		GameObject text;
+		//depending on who won, show a different text
+		if (AceExorcistGame.instance.summonerWins)
+			text = gameOverText;
+		else
+			text = victoryText;
+
+
 		while (time <= fadeTime)
 		{
 			//gets game over text and slowly make it fade in
 			time += Time.deltaTime/fadeTime;
-			Color c = gameOverText.GetComponent<Text>().color;
+			Color c = text.GetComponent<Text>().color;
 			c.a = time;
-			gameOverText.GetComponent<Text> ().color = c;//update alpha
+			text.GetComponent<Text> ().color = c;//update alpha
 			yield return new WaitForFixedUpdate ();//TODO: finish this TODAY
 		}
 		//when it reaches here, means button can be shown
 		ButtonManager.instance.Invoke("activateResetButton",0.5f);
+		ButtonManager.instance.Invoke("activateMainMenuButton",0.5f);
 
 	}
 
