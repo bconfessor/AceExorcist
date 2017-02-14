@@ -250,7 +250,7 @@ public class AceExorcistGame : MonoBehaviour
 		{
 			if (summonerAttack [i].GetComponent<CardModel> ().cardValue == summonerAttack [i + 1].GetComponent<CardModel> ().cardValue - 1)//if current is just one lower than next
 			{
-				damage += summonerAttack [i].GetComponent<CardModel> ().cardValue;
+				damage += (int)summonerAttack [i].GetComponent<CardModel> ().cardValue;
 				continue;
 			}
 
@@ -260,7 +260,7 @@ public class AceExorcistGame : MonoBehaviour
 			}
 		}
 		//must add last card, left loop before that happened
-		damage+=summonerAttack[summonerAttack.Count-1].GetComponent<CardModel>().cardValue;
+		damage+=(int)summonerAttack[summonerAttack.Count-1].GetComponent<CardModel>().cardValue;
 		//if it got here means attack is valid
 		return damage;
 	}
@@ -422,7 +422,7 @@ public class AceExorcistGame : MonoBehaviour
 			int damage = 0;
 			foreach (GameObject card in exorcistAttack)
 			{
-				damage += card.GetComponent<CardModel> ().cardValue;
+				damage += (int)card.GetComponent<CardModel> ().cardValue;
 			}
 
 			if (damage >= (int)summonAttacked.GetComponent<CardModel> ().cardValue)
@@ -526,7 +526,7 @@ public class AceExorcistGame : MonoBehaviour
 		int damage = 0;
 		foreach (GameObject card in summonerAttack)
 		{
-			damage += card.GetComponent<CardModel> ().cardValue;
+			damage += (int)card.GetComponent<CardModel> ().cardValue;
 		}
 
 

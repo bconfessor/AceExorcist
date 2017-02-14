@@ -187,7 +187,7 @@ public class Hand : MonoBehaviour {
 			//gets each card, check if they're toggled
 			if (t.GetComponent<CardModel> ().toggled)
 			{
-				sum += t.GetComponent<CardModel> ().cardValue;
+				sum += (int)t.GetComponent<CardModel> ().cardValue;
 
 			}
 
