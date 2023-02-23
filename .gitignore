@@ -24,3 +24,8 @@ ExportedObj/
 
 # Unity3D Generated File On Crash Reports
 sysinfo.txt
+
+#Update 24/02/23 - Ignore All AceExorcist_Data files
+
+Ace Exorcist/Library/
+
