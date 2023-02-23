@@ -12,6 +12,7 @@ After two months of learning to code in Unity, I managed to develop a turn-based
 
 ## Instructions
 
+The Windows executable game file can be found under AceExorcist/AceExorcist.exe . 
 Instructions for the game can be found in the Ace Exorcist.docx or Ace Exorcist.pdf files.
 
 
